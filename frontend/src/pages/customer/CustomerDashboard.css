@@ -1,0 +1,125 @@
+
+.customer-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f7fb;
+  font-family: Arial, sans-serif;
+}
+
+.customer-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+}
+
+.customer-main.sidebar-collapsed {
+  margin-left: 78px;
+}
+
+.customer-content {
+  padding: 30px;
+}
+
+.customer-page-heading {
+  margin-bottom: 25px;
+}
+
+.customer-page-heading h1 {
+  margin: 0 0 8px;
+  color: #062c63;
+  font-size: 26px;
+}
+
+.customer-page-heading p {
+  margin: 0;
+  color: #8492a8;
+  font-size: 14px;
+}
+
+.customer-welcome-card {
+  min-height: 270px;
+  padding: 35px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #0754a0, #003b7a);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.customer-welcome-card > div {
+  max-width: 550px;
+}
+
+.welcome-label {
+  color: #ffd600;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.customer-welcome-card h2 {
+  font-size: 30px;
+  line-height: 1.35;
+  margin: 15px 0 10px;
+}
+
+.customer-welcome-card p {
+  color: #e0eaf6;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.customer-welcome-card button {
+  margin-top: 15px;
+  padding: 12px 22px;
+  background: #ffd600;
+  color: #062c63;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.customer-welcome-card button:hover {
+  background: #f5c900;
+}
+
+.customer-placeholder {
+  background: #ffffff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  padding: 30px;
+  min-height: 200px;
+}
+
+.customer-placeholder h2 {
+  color: #062c63;
+}
+
+.customer-placeholder p {
+  color: #8492a8;
+}
+
+@media (max-width: 768px) {
+  .customer-main {
+    margin-left: 78px;
+  }
+
+  .customer-main.sidebar-collapsed {
+    margin-left: 0;
+  }
+
+  .customer-content {
+    padding: 20px 14px;
+  }
+
+  .customer-welcome-card {
+    padding: 25px;
+  }
+
+  .customer-welcome-card h2 {
+    font-size: 23px;
+  }
+}

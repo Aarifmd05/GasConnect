@@ -1,0 +1,21 @@
+
+Admin Page
+- Customer Page
+- Technician Page
+- Repairs
+- booking
+- inventory stock management
+
+Customer Page
+- dashboard
+- service type(domestic(for home, kitchen purpose), commercial(hotels,etc))
+- types of repairs per particular service type
+- rating technicians
+- products
+- Chat Bot(Optional)
+
+Technician Page
+- assigned works
+- reject or accept
+- update repair status
+- view work history

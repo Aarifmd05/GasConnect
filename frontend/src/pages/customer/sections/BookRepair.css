@@ -1,0 +1,424 @@
+
+.book-repair-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.book-repair-intro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+}
+
+.book-repair-intro-icon {
+  width: 55px;
+  height: 55px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  background: #fff4c2;
+  color: #0754a0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-repair-intro h2 {
+  margin: 0 0 7px;
+  font-size: 20px;
+  color: #062c63;
+}
+
+.book-repair-intro p {
+  margin: 0;
+  color: #8492a8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.repair-booking-form {
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+}
+
+.booking-form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.booking-form-heading h3 {
+  margin: 0;
+  color: #062c63;
+  font-size: 18px;
+}
+
+.booking-form-heading span {
+  font-size: 11px;
+  color: #8492a8;
+}
+
+.booking-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+
+.booking-form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #17365d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.booking-form-group label svg {
+  color: #0754a0;
+}
+
+.booking-form-group input,
+.booking-form-group select,
+.booking-form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid #dce4ef;
+  border-radius: 9px;
+  outline: none;
+  color: #17365d;
+  background: #ffffff;
+  font: inherit;
+  font-size: 13px;
+}
+
+.booking-form-group textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.booking-form-group input:focus,
+.booking-form-group select:focus,
+.booking-form-group textarea:focus {
+  border-color: #0754a0;
+  box-shadow: 0 0 0 3px rgba(7,84,160,0.08);
+}
+
+.booking-form-group small {
+  color: #8492a8;
+  font-size: 11px;
+  text-align: right;
+}
+
+.booking-date-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.booking-address-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.change-address-btn {
+  border: none;
+  background: transparent;
+  color: #0754a0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.selected-service-address {
+  display: flex;
+  gap: 13px;
+  padding: 16px;
+  border: 1px solid #cfe1f5;
+  background: #f4f8ff;
+  border-radius: 10px;
+}
+
+.selected-address-icon {
+  color: #0754a0;
+}
+
+.selected-service-address strong {
+  display: block;
+  color: #062c63;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.selected-service-address p {
+  margin: 0 0 5px;
+  color: #536982;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.selected-service-address small {
+  color: #8492a8;
+  font-size: 11px;
+}
+
+.no-service-address {
+  padding: 16px;
+  background: #fff8e6;
+  border: 1px solid #f5dfa0;
+  color: #956b00;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.booking-address-selector {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.booking-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding-top: 20px;
+  border-top: 1px solid #e8edf4;
+}
+
+.booking-form-footer p {
+  margin: 0;
+  color: #8492a8;
+  font-size: 11px;
+}
+
+.submit-repair-booking {
+  padding: 13px 22px;
+  background: #0754a0;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submit-repair-booking:hover {
+  background: #003b7a;
+}
+
+.submit-repair-booking:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.booking-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.booking-success {
+  background: #e8f8ef;
+  color: #16834d;
+  border: 1px solid #bce8ce;
+}
+
+.booking-error {
+  background: #fff0f0;
+  color: #c63b3b;
+  border: 1px solid #f3caca;
+}
+
+@media (max-width: 650px) {
+  .repair-booking-form {
+    padding: 18px;
+  }
+
+  .booking-date-time-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .booking-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .submit-repair-booking {
+    width: 100%;
+  }
+
+  .booking-form-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+/* Optional field label */
+.optional-label {
+  color: #8492a8;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 7px;
+}
+
+/* Photo upload */
+.photo-upload-description {
+  color: #8492a8;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: -5px 0 14px;
+}
+
+.hidden-photo-input {
+  display: none;
+}
+
+.photo-upload-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.photo-upload-option {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px;
+  background: #f8faff;
+  border: 1px dashed #cbd7e8;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.photo-upload-option:hover {
+  background: #eef5ff;
+  border-color: #0754a0;
+}
+
+.photo-option-icon {
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e6f0ff;
+  color: #0754a0;
+  border-radius: 10px;
+}
+
+.photo-upload-option strong,
+.photo-upload-option span {
+  display: block;
+}
+
+.photo-upload-option strong {
+  color: #17365d;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.photo-upload-option span {
+  color: #8492a8;
+  font-size: 11px;
+}
+
+/* Image preview */
+.issue-photo-preview {
+  max-width: 420px;
+  overflow: hidden;
+  border: 1px solid #e8edf4;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.issue-photo-preview img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+  background: #f4f7fb;
+}
+
+.issue-photo-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.issue-photo-info strong,
+.issue-photo-info span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.issue-photo-info strong {
+  color: #17365d;
+  font-size: 13px;
+}
+
+.issue-photo-info span {
+  color: #8492a8;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.remove-issue-photo {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  color: #dc3545;
+  background: #fff0f0;
+  cursor: pointer;
+}
+
+.remove-issue-photo:hover {
+  background: #ffe0e0;
+}
+
+.photo-upload-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #8492a8;
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .photo-upload-options {
+    grid-template-columns: 1fr;
+  }
+
+  .issue-photo-preview {
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,75 @@
+
+.technician-sidebar-header {
+  width: 100%;
+  padding: 15px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.technician-brand-logo {
+  display: block;
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 16px;
+}
+
+.technician-sidebar-close {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .technician-sidebar-close {
+    display: flex;
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    cursor: pointer;
+  }
+}
+.technician-sidebar-header {
+  width: 100%;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.technician-brand-logo {
+  display: block;
+  width: 100%;
+  height: 110px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 5px;
+}
+
+.technician-sidebar-close {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .technician-sidebar-close {
+    display: flex;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    cursor: pointer;
+  }
+}

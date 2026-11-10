@@ -1,0 +1,441 @@
+
+.location-selector {
+    width: 100%;
+    color: #17365D;
+}
+
+.location-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 24px;
+}
+
+.location-header h2 {
+    font-size: 22px;
+    margin: 0 0 6px;
+}
+
+.location-header p,
+.location-modal-header p {
+    color: #8492A8;
+    font-size: 13px;
+    margin: 0;
+}
+
+.location-add-btn,
+.location-empty button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #0754A0;
+    color: white;
+    border: none;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.location-add-btn:hover,
+.location-empty button:hover {
+    background: #003B7A;
+}
+
+.location-loading {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #8492A8;
+}
+
+.location-spinner {
+    animation: locationSpin 1s linear infinite;
+}
+
+@keyframes locationSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.location-error {
+    padding: 12px 15px;
+    background: #FFF0F0;
+    color: #C62828;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.location-empty {
+    text-align: center;
+    background: white;
+    border: 1px dashed #CBD5E1;
+    border-radius: 12px;
+    padding: 45px 20px;
+}
+
+.location-empty-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: #EEF5FC;
+    color: #0754A0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.location-empty h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.location-empty p {
+    max-width: 400px;
+    margin: 0 auto 20px;
+    color: #8492A8;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.location-empty button {
+    margin: auto;
+}
+
+.location-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.location-card {
+    background: white;
+    border: 1px solid #E8EDF4;
+    border-radius: 12px;
+    padding: 17px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.location-card.selected {
+    border: 1.5px solid #0754A0;
+    box-shadow: 0 3px 12px rgba(7, 84, 160, 0.08);
+}
+
+.location-card-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.location-card-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0754A0;
+    background: #EEF5FC;
+    border-radius: 10px;
+}
+
+.location-card-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.location-card-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+}
+
+.location-card-title strong {
+    font-size: 14px;
+}
+
+.default-tag,
+.selected-tag {
+    font-size: 10px;
+    padding: 4px 7px;
+    border-radius: 20px;
+    background: #FFF6D5;
+    color: #9A6A00;
+}
+
+.selected-tag {
+    background: #E8F3FF;
+    color: #0754A0;
+}
+
+.location-card-details p {
+    margin: 0 0 7px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.location-card-details small {
+    display: block;
+    color: #8492A8;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.location-select-icon {
+    color: #0754A0;
+}
+
+.location-card-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 13px;
+    border-top: 1px solid #F0F2F5;
+    margin-top: 15px;
+    padding-top: 12px;
+}
+
+.location-card-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    background: transparent;
+    color: #0754A0;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 3px 0;
+}
+
+.location-card-actions .delete-address-btn {
+    color: #D14343;
+}
+
+.location-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(5, 23, 48, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+.location-modal {
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.18);
+}
+
+.location-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.location-modal-header h3 {
+    margin: 0 0 7px;
+    font-size: 19px;
+}
+
+.location-close-btn {
+    border: none;
+    background: #F1F4F8;
+    color: #52647C;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.location-modal form > label:not(.location-default-checkbox) {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 15px 0 7px;
+}
+
+.location-label-options {
+    display: flex;
+    gap: 10px;
+}
+
+.location-label-options button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 11px 5px;
+    border: 1px solid #E8EDF4;
+    border-radius: 8px;
+    background: white;
+    color: #52647C;
+    cursor: pointer;
+}
+
+.location-label-options button.active {
+    color: #0754A0;
+    background: #EEF5FC;
+    border-color: #0754A0;
+}
+
+.location-modal input:not([type="checkbox"]),
+.location-modal textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #DCE3EC;
+    border-radius: 8px;
+    padding: 11px 12px;
+    outline: none;
+    font: inherit;
+    font-size: 13px;
+    color: #17365D;
+}
+
+.location-modal input:focus,
+.location-modal textarea:focus {
+    border-color: #0754A0;
+    box-shadow: 0 0 0 3px rgba(7, 84, 160, 0.08);
+}
+
+.location-modal textarea {
+    resize: vertical;
+}
+
+.location-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.location-form-grid label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 15px 0 7px;
+}
+
+.location-gps-btn {
+    width: 100%;
+    margin-top: 17px;
+    padding: 12px;
+    border: 1px solid #0754A0;
+    background: #EEF5FC;
+    color: #0754A0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.location-gps-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.gps-success {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #18834B;
+    font-size: 12px;
+}
+
+.location-default-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 18px;
+    font-size: 12px;
+    color: #52647C;
+    cursor: pointer;
+}
+
+.location-default-checkbox input {
+    accent-color: #0754A0;
+}
+
+.location-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.location-form-actions button {
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.location-cancel-btn {
+    border: 1px solid #DCE3EC;
+    background: white;
+    color: #52647C;
+}
+
+.location-save-btn {
+    border: none;
+    background: #0754A0;
+    color: white;
+}
+
+.location-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+    .location-list {
+        grid-template-columns: 1fr;
+    }
+
+    .location-header {
+        align-items: flex-start;
+    }
+
+    .location-add-btn {
+        padding: 9px 11px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 450px) {
+    .location-header {
+        flex-direction: column;
+    }
+
+    .location-form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .location-modal {
+        padding: 18px;
+    }
+}

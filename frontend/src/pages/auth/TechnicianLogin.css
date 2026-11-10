@@ -1,0 +1,212 @@
+
+.technician-login-heading {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.technician-login-heading h1 {
+    color: #FFFFFF;
+    font-size: 29px;
+    font-weight: 500;
+}
+
+.technician-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.technician-google-button {
+    width: 100%;
+    height: 58px;
+    border: none;
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #0754A0;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+}
+
+.technician-google-icon {
+    width: 27px;
+    height: 27px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.technician-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #FFFFFF;
+    font-size: 17px;
+    text-align: center;
+}
+
+.technician-login-divider::before,
+.technician-login-divider::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.technician-login-input {
+    width: 100%;
+    height: 65px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    color: #0754A0;
+}
+
+.technician-login-input svg {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.technician-login-input input {
+    width: 100%;
+    min-width: 0;
+    height: 80%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #0754A0;
+    font-size: 18px;
+    border-bottom: 2px solid #0754A0;
+}
+
+.technician-login-input input::placeholder {
+    color: #0754A0;
+    opacity: 1;
+}
+
+.technician-login-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.technician-login-options a {
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.technician-login-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.technician-login-options input {
+    width: 19px;
+    height: 19px;
+    accent-color: #FFD600;
+}
+
+.technician-login-submit {
+    width: 75%;
+    height: 60px;
+    margin: 8px auto 0;
+    border: none;
+    border-radius: 35px;
+    background: linear-gradient(180deg, #FFD600, #FF9900);
+    color: #062C63;
+    font-size: 23px;
+    font-weight: 700;
+    transition: 0.2s ease;
+}
+
+.technician-login-submit:hover {
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+}
+
+.technician-login-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.technician-login-signup {
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 16px;
+}
+
+.technician-login-signup a {
+    color: #FFFFFF;
+    text-decoration: underline;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.technician-login-error {
+    color: #FFE0E0;
+    text-align: center;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .technician-login-heading h1 {
+        font-size: 22px;
+    }
+
+    .technician-login-form {
+        gap: 14px;
+    }
+
+    .technician-google-button {
+        height: 48px;
+        font-size: 14px;
+    }
+
+    .technician-login-input {
+        height: 48px;
+        padding: 0 14px;
+        gap: 12px;
+    }
+
+    .technician-login-input svg {
+        width: 21px;
+        height: 21px;
+    }
+
+    .technician-login-input input {
+        font-size: 14px;
+    }
+
+    .technician-login-options {
+        font-size: 12px;
+    }
+
+    .technician-login-submit {
+        height: 48px;
+        font-size: 18px;
+    }
+
+    .technician-login-signup {
+        font-size: 13px;
+    }
+}
+.technician-login-input input:-webkit-autofill,
+.technician-login-input input:-webkit-autofill:hover,
+.technician-login-input input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset;
+    -webkit-text-fill-color: #0754A0;
+    transition: background-color 9999s ease-in-out 0s;
+}

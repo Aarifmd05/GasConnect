@@ -1,0 +1,297 @@
+
+.admin-login-heading {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.admin-login-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.admin-login-title h1 {
+    font-size: 34px;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+.admin-login-heading p {
+    font-size: 17px;
+    color: #FFFFFF;
+}
+
+.admin-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-google-button {
+    width: 100%;
+    height: 60px;
+    border: none;
+    border-radius: 13px;
+    background: #FFFFFF;
+    color: #0754A0;
+    font-size: 17px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    cursor: pointer;
+}
+
+.admin-google-icon {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
+
+.admin-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #FFFFFF;
+    font-size: 17px;
+}
+
+.admin-login-divider::before,
+.admin-login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.admin-login-input {
+    width: 100%;
+    height: 65px;
+    padding: 0 20px;
+    background: #FFFFFF;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    color: #0754A0;
+}
+
+.admin-login-input > svg {
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+}
+
+.admin-login-input input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #0754A0;
+    font-size: 17px;
+}
+
+.admin-login-input input::placeholder {
+    color: #0754A0;
+    opacity: 0.85;
+}
+
+.admin-password-field::-ms-reveal,
+.admin-password-field::-ms-clear {
+    display: none;
+}
+
+.admin-password-toggle {
+    border: none;
+    background: transparent;
+    color: #0754A0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 5px;
+}
+
+.admin-login-options {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: -5px;
+}
+
+.admin-login-options a {
+    color: #FFFFFF;
+    font-size: 15px;
+    text-decoration: underline;
+}
+
+.admin-login-error {
+    color: #FFD6D6;
+    font-size: 14px;
+    text-align: center;
+}
+
+.admin-login-submit {
+    width: 100%;
+    height: 65px;
+    border: none;
+    border-radius: 40px;
+    background: linear-gradient(180deg, #FFD600, #FF9900);
+    color: #003B7A;
+    font-size: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.admin-login-submit:hover {
+    transform: translateY(-2px);
+}
+
+.admin-login-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .admin-login-title h1 {
+        font-size: 27px;
+    }
+
+    .admin-login-heading p {
+        font-size: 14px;
+    }
+
+    .admin-login-form {
+        gap: 15px;
+    }
+
+    .admin-login-input {
+        height: 55px;
+        padding: 0 14px;
+    }
+
+    .admin-login-input input {
+        font-size: 15px;
+    }
+
+    .admin-google-button {
+        height: 55px;
+        font-size: 15px;
+    }
+
+    .admin-login-submit {
+        height: 55px;
+        font-size: 21px;
+    }
+}
+/* Service Category Add/Edit Modal */
+
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.admin-modal {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+}
+
+.admin-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.admin-modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+    color: #123765;
+}
+
+.admin-modal-header button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #555;
+}
+
+.admin-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-modal form label {
+    font-weight: 600;
+    color: #123765;
+}
+
+.admin-modal form input,
+.admin-modal form select,
+.admin-modal form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d5dce7;
+    border-radius: 8px;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.admin-modal form textarea {
+    resize: vertical;
+}
+
+.admin-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.admin-modal-actions button {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.admin-modal-actions button:last-child {
+    background: #0759a5;
+    color: white;
+}
+
+.admin-modal-actions button:first-child {
+    background: #e8edf3;
+    color: #26384c;
+}
+
+.admin-modal-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.admin-technician-toolbar > div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}

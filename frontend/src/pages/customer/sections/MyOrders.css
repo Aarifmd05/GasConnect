@@ -1,0 +1,271 @@
+
+.my-orders-page {
+  width: 100%;
+}
+
+.my-orders-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.my-orders-heading h2 {
+  margin: 0 0 7px;
+  color: #1e293b;
+}
+
+.my-orders-heading p {
+  margin: 0;
+  color: #64748b;
+}
+
+.my-orders-refresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.my-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.my-order-card {
+  padding: 20px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.my-order-header,
+.my-order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.my-order-header > div,
+.my-order-footer > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-order-header span,
+.my-order-footer span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.my-order-header strong,
+.my-order-footer strong {
+  color: #1e293b;
+  overflow-wrap: anywhere;
+}
+
+.my-order-status {
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.my-order-status.confirmed,
+.my-order-status.delivered {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.my-order-status.cancelled,
+.my-order-status.failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.my-order-status.shipped,
+.my-order-status.packed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.my-order-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 18px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.my-order-meta span,
+.my-order-address {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.my-order-items {
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 15px 0;
+}
+
+.my-order-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 8px 0;
+}
+
+.my-order-item strong {
+  color: #1e293b;
+}
+
+.my-order-item p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.my-order-address {
+  align-items: flex-start;
+  margin: 15px 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.my-order-footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 15px;
+}
+
+.my-orders-loading,
+.my-orders-empty {
+  padding: 50px 20px;
+  text-align: center;
+  color: #64748b;
+  background: white;
+  border-radius: 12px;
+}
+
+.my-orders-empty svg {
+  color: #f59e0b;
+}
+
+.my-orders-empty h3 {
+  color: #1e293b;
+}
+
+.my-orders-error {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .my-orders-heading {
+    align-items: flex-start;
+  }
+
+  .my-order-card {
+    padding: 15px;
+  }
+
+  .my-order-header {
+    align-items: flex-start;
+  }
+}
+
+/* =====================================
+   INVOICE DOWNLOAD
+===================================== */
+
+
+/* =====================================
+   INVOICE DOWNLOAD
+===================================== */
+
+.my-order-invoice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.invoice-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #F59E0B;
+}
+
+.invoice-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invoice-info strong {
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.invoice-info span {
+  color: #6b7280;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.download-invoice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #F59E0B;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.download-invoice-btn:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.download-invoice-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .my-order-invoice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .download-invoice-btn {
+    width: 100%;
+  }
+}

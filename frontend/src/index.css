@@ -1,0 +1,176 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+    font-family: 'Poppins', sans-serif;
+
+    /* GasConnect Brand Colors - shared across themes */
+    --gc-yellow: #FFD600;
+    --gc-amber: #F59E0B;
+    --gc-blue: #0754A0;
+    --gc-dark-blue: #003B7A;
+    --gc-navy: #062C63;
+    --gc-white: #FFFFFF;
+
+    /* Light Theme */
+    --gc-text: #17365D;
+    --gc-muted: #8492A8;
+    --gc-background: #F4F7FB;
+    --gc-surface: #FFFFFF;
+    --gc-surface-secondary: #F8FAFD;
+    --gc-border: #E8EDF4;
+    --gc-input-background: #FFFFFF;
+    --gc-header-background: #FFFFFF;
+    --gc-sidebar-background: #062C63;
+    --gc-shadow: 0 4px 18px rgba(23, 54, 93, 0.07);
+
+    color-scheme: light;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark Theme */
+:root[data-theme="dark"] {
+    --gc-text: #E8EFFA;
+    --gc-muted: #A5B4CC;
+    --gc-background: #101827;
+    --gc-surface: #182438;
+    --gc-surface-secondary: #202F45;
+    --gc-border: #304158;
+    --gc-input-background: #202F45;
+    --gc-header-background: #182438;
+    --gc-sidebar-background: #0B1930;
+    --gc-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+
+    color-scheme: dark;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    min-width: 320px;
+    min-height: 100%;
+    scroll-behavior: smooth;
+    background: var(--gc-background);
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    background: var(--gc-background);
+    color: var(--gc-text);
+    font-family: 'Poppins', sans-serif;
+
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+input,
+textarea,
+select {
+    color: var(--gc-text);
+    background-color: var(--gc-input-background);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--gc-muted);
+    opacity: 0.8;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+#root {
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Smooth theme transitions for common application surfaces */
+body,
+header,
+nav,
+main,
+aside,
+section,
+article,
+footer,
+table,
+th,
+td,
+input,
+textarea,
+select {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+/* Text selection */
+::selection {
+    background: var(--gc-yellow);
+    color: #062C63;
+}
+
+/* Scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gc-muted) var(--gc-background);
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--gc-background);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--gc-muted);
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--gc-blue);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
