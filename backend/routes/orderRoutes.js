@@ -8,6 +8,19 @@ import authMiddleware from '../middleware/authMiddleware.js';
 import generateInvoice from '../utils/generateInvoice.js';
 
 const router = express.Router();
+// ==========================================
+// ADMIN AUTHORIZATION
+// ==========================================
+
+const adminOnly = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({
+            message: 'Admin access required'
+        });
+    }
+
+    next();
+};
 
 // ==========================================
 // PLACE A NEW ORDER
@@ -231,30 +244,104 @@ router.get('/my-orders', authMiddleware, async (req, res) => {
     }
 });
 
-
 // ==========================================
-// DOWNLOAD CUSTOMER INVOICE
-// GET /api/orders/:id/invoice
+// GET ALL CUSTOMER ORDERS (ADMIN)
+// GET /api/orders/admin/all
 // ==========================================
 
-router.get('/:id/invoice', authMiddleware, async (req, res) => {
+router.get('/admin/all', authMiddleware, adminOnly, async (req, res) => {
     try {
-        if (req.user.role !== 'customer') {
-            return res.status(403).json({
-                message: 'Access denied'
-            });
-        }
+        const orders = await Order.find()
+            .populate('customer', 'name email phone')
+            .populate('items.product', 'name image')
+            .sort({ createdAt: -1 });
 
+        return res.status(200).json({
+            message: 'All orders fetched successfully',
+            count: orders.length,
+            orders
+        });
+
+    } catch (error) {
+        console.error('Admin Fetch Orders Error:', error);
+
+        return res.status(500).json({
+            message: 'Unable to fetch customer orders'
+        });
+    }
+});
+
+// ==========================================
+// GET SINGLE CUSTOMER ORDER (ADMIN)
+// GET /api/orders/admin/:id
+// ==========================================
+
+router.get('/admin/:id', authMiddleware, adminOnly, async (req, res) => {
+    try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({
                 message: 'Invalid order ID'
             });
         }
 
-        const order = await Order.findOne({
-            _id: req.params.id,
-            customer: req.user.id
-        }).populate('customer', 'name email phone');
+        const order = await Order.findById(req.params.id)
+            .populate('customer', 'name email phone')
+            .populate('items.product', 'name image');
+
+        if (!order) {
+            return res.status(404).json({
+                message: 'Order not found'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Order details fetched successfully',
+            order
+        });
+
+    } catch (error) {
+        console.error('Admin Order Details Error:', error);
+
+        return res.status(500).json({
+            message: 'Unable to fetch order details'
+        });
+    }
+});
+
+// ==========================================
+// DOWNLOAD CUSTOMER / ADMIN INVOICE
+// GET /api/orders/:id/invoice
+// ==========================================
+
+router.get('/:id/invoice', authMiddleware, async (req, res) => {
+    try {
+        // Allow only customers and admins
+        if (!['customer', 'admin'].includes(req.user.role)) {
+            return res.status(403).json({
+                message: 'Access denied'
+            });
+        }
+
+        // Validate order ID
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: 'Invalid order ID'
+            });
+        }
+
+        // Admin can access any order.
+        // Customer can access only their own order.
+        let order;
+
+        if (req.user.role === 'admin') {
+            order = await Order.findById(req.params.id)
+                .populate('customer', 'name email phone');
+        } else {
+            order = await Order.findOne({
+                _id: req.params.id,
+                customer: req.user.id
+            }).populate('customer', 'name email phone');
+        }
 
         if (!order) {
             return res.status(404).json({
@@ -268,8 +355,8 @@ router.get('/:id/invoice', authMiddleware, async (req, res) => {
             });
         }
 
+        // Generate invoice PDF
         const doc = generateInvoice(order, order.customer);
-
         const filename = `${order.invoiceNumber}.pdf`;
 
         res.setHeader('Content-Type', 'application/pdf');
@@ -305,47 +392,122 @@ router.get('/:id/invoice', authMiddleware, async (req, res) => {
 
 
 // ==========================================
-// GET ONE CUSTOMER ORDER
-// GET /api/orders/:id
+// UPDATE ORDER STATUS (ADMIN)
+// PUT /api/orders/admin/:id/status
 // ==========================================
 
-router.get('/:id', authMiddleware, async (req, res) => {
+router.put('/admin/:id/status', authMiddleware, adminOnly, async (req, res) => {
+    const { orderStatus } = req.body;
+
+    const allowedStatuses = [
+        'CONFIRMED',
+        'PACKED',
+        'SHIPPED',
+        'DELIVERED',
+        'CANCELLED'
+    ];
+
+    if (!allowedStatuses.includes(orderStatus)) {
+        return res.status(400).json({
+            message: 'Invalid order status'
+        });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({
+            message: 'Invalid order ID'
+        });
+    }
+
+    const session = await mongoose.startSession();
+
     try {
-        if (req.user.role !== 'customer') {
-            return res.status(403).json({
-                message: 'Access denied'
-            });
-        }
+        let updatedOrder;
 
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({
-                message: 'Invalid order ID'
-            });
-        }
+        await session.withTransaction(async () => {
+            const order = await Order.findById(req.params.id).session(session);
 
-        const order = await Order.findOne({
-            _id: req.params.id,
-            customer: req.user.id
-        }).populate('items.product', 'name image');
+            if (!order) {
+                throw new Error('ORDER_NOT_FOUND');
+            }
 
-        if (!order) {
-            return res.status(404).json({
-                message: 'Order not found'
-            });
-        }
+            if (order.orderStatus === 'CANCELLED') {
+                throw new Error('ORDER_ALREADY_CANCELLED');
+            }
+
+            if (order.orderStatus === 'DELIVERED') {
+                throw new Error('ORDER_ALREADY_DELIVERED');
+            }
+
+            // Validate order status progression.
+            const validTransitions = {
+                PENDING: ['CONFIRMED', 'CANCELLED'],
+                CONFIRMED: ['PACKED', 'CANCELLED'],
+                PACKED: ['SHIPPED', 'CANCELLED'],
+                SHIPPED: ['DELIVERED'],
+                DELIVERED: [],
+                CANCELLED: []
+            };
+
+            if (!validTransitions[order.orderStatus]?.includes(orderStatus)) {
+                throw new Error('INVALID_STATUS_TRANSITION');
+            }
+
+            // Restore product stock only when cancelling.
+            if (orderStatus === 'CANCELLED') {
+                for (const item of order.items) {
+                    const result = await Product.updateOne(
+                        { _id: item.product },
+                        { $inc: { stock: item.quantity } },
+                        { session }
+                    );
+
+                    if (result.matchedCount !== 1) {
+                        throw new Error('ORDER_PRODUCT_NOT_FOUND');
+                    }
+                }
+            }
+
+            order.orderStatus = orderStatus;
+
+            await order.save({ session });
+
+            updatedOrder = order;
+        });
+
+        const populatedOrder = await Order.findById(updatedOrder._id)
+            .populate('customer', 'name email phone')
+            .populate('items.product', 'name image');
 
         return res.status(200).json({
-            message: 'Order fetched successfully',
-            order
+            message: orderStatus === 'CANCELLED'
+                ? 'Order cancelled and product stock restored successfully'
+                : 'Order status updated successfully',
+            order: populatedOrder
         });
 
     } catch (error) {
-        console.error('Fetch Order Error:', error);
+        console.error('Admin Order Status Update Error:', error);
 
-        return res.status(500).json({
-            message: 'Unable to fetch order'
-        });
+        const errors = {
+            ORDER_NOT_FOUND: [404, 'Order not found'],
+            ORDER_ALREADY_CANCELLED: [400, 'Order is already cancelled'],
+            ORDER_ALREADY_DELIVERED: [400, 'Delivered orders cannot be changed'],
+            INVALID_STATUS_TRANSITION: [400, 'Invalid order status transition'],
+            ORDER_PRODUCT_NOT_FOUND: [409, 'A product from this order no longer exists']
+        };
+
+        const [status, message] = errors[error.message] || [
+            500,
+            'Unable to update order status'
+        ];
+
+        return res.status(status).json({ message });
+
+    } finally {
+        await session.endSession();
     }
 });
+
 
 export default router;

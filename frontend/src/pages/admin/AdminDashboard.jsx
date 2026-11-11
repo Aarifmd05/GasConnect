@@ -23,6 +23,7 @@ import {
     Plus,
     Pencil,
     Trash2,
+    ShoppingBag,
     Save
 } from 'lucide-react';
 
@@ -41,6 +42,7 @@ import ServiceCategoriesSection from './sections/ServiceCategoriesSection';
 import ProductsSection from './sections/ProductsSection';
 import ReviewsSection from './sections/ReviewsSection';
 import SettingsSection from './sections/SettingsSection';
+import OrdersSection from './sections/OrdersSection';
 
 function AdminDashboard() {
     const navigate = useNavigate();
@@ -57,6 +59,155 @@ function AdminDashboard() {
         pendingApprovals: 0,
         totalBookings: 0
     });
+
+const handleInvoiceDownload = async (orderId, action = 'download') => {
+    let invoiceWindow = null;
+
+    try {
+        // Open a blank tab immediately for PDF viewing
+        if (action === 'view') {
+            invoiceWindow = window.open('', '_blank');
+
+            if (!invoiceWindow) {
+                alert('Please allow pop-ups to view the invoice.');
+                return;
+            }
+        }
+
+        const token = getToken();
+
+if (!token) {
+            if (invoiceWindow) invoiceWindow.close();
+            navigate('/admin/login');
+            return;
+        }
+
+        const response = await axios.get(
+            `http://localhost:3006/api/orders/${orderId}/invoice`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                responseType: 'blob'
+            }
+        );
+
+        const pdfBlob = new Blob([response.data], {
+            type: 'application/pdf'
+        });
+
+        const pdfUrl = window.URL.createObjectURL(pdfBlob);
+
+        if (action === 'view') {
+            invoiceWindow.location.href = pdfUrl;
+        } else {
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.download = 'GasConnect-Invoice.pdf';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        setTimeout(() => {
+            window.URL.revokeObjectURL(pdfUrl);
+        }, 60000);
+
+    } catch (error) {
+        if (invoiceWindow) {
+            invoiceWindow.close();
+        }
+
+        console.error('Invoice Error:', error);
+        alert('Unable to retrieve invoice. Please try again.');
+    }
+};
+
+    // Fetch all customer orders
+const fetchOrders = async () => {
+    setOrdersLoading(true);
+    setOrdersError('');
+
+    try {
+        const token = getToken();
+
+        if (!token) {
+            navigate('/admin/login');
+            return;
+        }
+
+        const response = await axios.get(
+            'http://localhost:3006/api/orders/admin/all',
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        setOrders(response.data.orders || []);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+
+        if (handleAuthError(error)) return;
+
+        setOrdersError(
+            error.response?.data?.message ||
+            'Unable to load customer orders. Please try again.'
+        );
+    } finally {
+        setOrdersLoading(false);
+    }
+};
+     
+     // Update customer order status
+const handleOrderStatusUpdate = async (orderId, orderStatus) => {
+    const confirmed = window.confirm(
+        `Are you sure you want to change this order status to ${orderStatus}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const token = getToken();
+
+        if (!token) {
+            navigate('/admin/login');
+            return;
+        }
+
+        const response = await axios.put(
+            `http://localhost:3006/api/orders/admin/${orderId}/status`,
+            { orderStatus },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        await fetchOrders();
+
+        // Refresh inventory when an order is cancelled
+        if (orderStatus === 'CANCELLED') {
+            await fetchProducts();
+        }
+
+        window.alert(
+            response.data.message || 'Order status updated successfully.'
+        );
+    } catch (error) {
+        console.error('Error updating order status:', error);
+
+        if (handleAuthError(error)) return;
+
+        window.alert(
+            error.response?.data?.message ||
+            'Unable to update order status.'
+        );
+    }
+};
 
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState('');
@@ -111,6 +262,11 @@ function AdminDashboard() {
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(false);
     const [reviewsError, setReviewsError] = useState('');
+
+       // Orders Management
+    const [orders, setOrders] = useState([]);
+    const [ordersLoading, setOrdersLoading] = useState(false);
+    const [ordersError, setOrdersError] = useState('');
 
     // Get authentication token
     const getToken = () => sessionStorage.getItem('token');
@@ -200,6 +356,12 @@ function AdminDashboard() {
 
         fetchCustomers();
     }, [activeMenu]);
+
+    useEffect(() => {
+    if (activeMenu === 'Orders') {
+        fetchOrders();
+    }
+}, [activeMenu]);
 
     // Fetch technicians
     const fetchTechnicians = async () => {
@@ -1220,6 +1382,7 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
         { name: 'Repair Types', icon: Wrench },
         { name: 'Service Categories', icon: Layers },
         { name: 'Products & Inventory', icon: Package },
+        { name: 'Orders', icon: ShoppingBag },    
         { name: 'Reviews', icon: Star },
         { name: 'Settings', icon: Settings }
     ];
@@ -1314,26 +1477,28 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
                     <div className="admin-search">
                         <Search size={19} />
 
-                        <input
-                            type="text"
-                            placeholder={
-                                activeMenu === 'Customers'
-                                    ? 'Search customers...'
-                                    : activeMenu === 'Technicians'
-                                        ? 'Search technicians...'
-                                        : activeMenu === 'Bookings'
-                                            ? 'Search bookings...'
-                                            : activeMenu === 'Repair Types'
-                                                ? 'Search repair types...'
-                                                : activeMenu === 'Service Categories'
-                                                    ? 'Search categories...'
-                                                    : activeMenu === 'Reviews'
-                                                        ? 'Search reviews...'
-                                                        : 'Search anything...'
-                            }
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                       <input
+    type="text"
+    placeholder={
+        activeMenu === 'Customers'
+            ? 'Search customers...'
+            : activeMenu === 'Technicians'
+                ? 'Search technicians...'
+                : activeMenu === 'Bookings'
+                    ? 'Search bookings...'
+                    : activeMenu === 'Repair Types'
+                        ? 'Search repair types...'
+                        : activeMenu === 'Service Categories'
+                            ? 'Search categories...'
+                            : activeMenu === 'Orders'
+                                ? 'Search orders...'
+                                : activeMenu === 'Reviews'
+                                    ? 'Search reviews...'
+                                    : 'Search anything...'
+    }
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+/>
                     </div>
 
                     <div className="admin-topbar-right">
@@ -1459,6 +1624,19 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
                             searchTerm={searchTerm}
                         />
                     )}
+
+                    {/* Orders Section */}
+{activeMenu === 'Orders' && (
+    <OrdersSection
+        orders={orders}
+        ordersLoading={ordersLoading}
+        ordersError={ordersError}
+        fetchOrders={fetchOrders}
+        handleOrderStatusUpdate={handleOrderStatusUpdate}
+        handleInvoiceDownload={handleInvoiceDownload}
+        searchTerm={searchTerm}
+    />
+)}
 
                     {/* Reviews Section */}
                     {activeMenu === 'Reviews' && (
