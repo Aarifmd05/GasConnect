@@ -7,7 +7,6 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
 
 import logo from '../../assets/logo.png';
-import mascot from '../../assets/img1.png';
 
 import './CustomerLogin.css';
 
@@ -48,7 +47,7 @@ function CustomerLogin() {
     };
 
     return (
-        <AuthLayout logo={logo} illustration={mascot}>
+        <AuthLayout logo={logo}>
 
             <div className="login-heading">
                 <h1>Welcome Back!</h1>

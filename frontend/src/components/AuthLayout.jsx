@@ -1,11 +1,11 @@
 
 import './AuthLayout.css';
+import TechnicianAnimation from './TechnicianAnimation';
 
-function AuthLayout({ logo, illustration, children }) {
+function AuthLayout({ logo, children }) {
     return (
         <div className="auth-page">
 
-            {/* Yellow header with GasConnect logo */}
             <header className="auth-header">
                 <div className="auth-header-inner">
                     <img
@@ -16,19 +16,12 @@ function AuthLayout({ logo, illustration, children }) {
                 </div>
             </header>
 
-            {/* Main authentication section */}
             <main className="auth-container">
 
-                {/* Left-side illustration */}
                 <section className="auth-illustration">
-                    <img
-                        src={illustration}
-                        alt="GasConnect Service Illustration"
-                        className="auth-mascot"
-                    />
+                    <TechnicianAnimation />
                 </section>
 
-                {/* Right-side form */}
                 <section className="auth-card">
                     {children}
                 </section>

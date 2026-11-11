@@ -12,9 +12,7 @@ import {
 } from 'lucide-react';
 
 import AuthLayout from '../../components/AuthLayout';
-
 import logo from '../../assets/logo.png';
-import mascot from '../../assets/img1.png';
 
 import './CustomerSignup.css';
 
@@ -203,7 +201,7 @@ function CustomerSignup() {
     };
 
     return (
-        <AuthLayout logo={logo} illustration={mascot}>
+        <AuthLayout logo={logo}>
 
             <div className="signup-heading">
                 <h1>

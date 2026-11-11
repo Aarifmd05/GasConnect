@@ -93,7 +93,7 @@
     height: 52px;
     border: none;
     border-radius: 30px;
-    background: linear-gradient(180deg, #FFD600, #FF9900);;
+    background: linear-gradient(180deg, #FFD600, #FF9900);
     color: #FFFFFF;
     font-size: 19px;
     font-weight: 700;
@@ -177,4 +177,24 @@
     .login-form {
         gap: 12px;
     }
+}
+
+
+.auth-container {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Animation stays behind the form */
+.technician-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Login form always stays in front */
+.auth-card {
+  position: relative;
+  z-index: 5;
 }

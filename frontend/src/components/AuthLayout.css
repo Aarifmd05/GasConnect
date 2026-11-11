@@ -25,45 +25,42 @@
     object-position: left center;
 }
 
+/* Main authentication area */
 .auth-container {
     position: relative;
     z-index: 2;
+    isolation: isolate;
+    overflow: hidden;
+
     margin-top: -190px;
     min-height: calc(100vh - 260px);
     padding: 0 4% 10px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 30px;
 }
 
-.auth-illustration {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform: translateY(150px);
-}
-
-.auth-mascot {
-    width: 100%;
-    max-width: 570px;
-    max-height: 430px;
-    object-fit: contain;
-}
-
+/* Login and signup card always stays in front */
 .auth-card {
+    position: relative;
+    z-index: 5;
+
     flex: 0 1 650px;
     width: 100%;
     max-width: 650px;
+    margin-left: auto;
+
     background: linear-gradient(145deg, #0754A0, #03417F);
     color: white;
+
     padding: 35px;
     border-radius: 35px;
     box-shadow: 0 18px 30px rgba(0, 0, 0, 0.22);
 }
 
+/* Tablet */
 @media (max-width: 900px) {
     .auth-header {
         height: 180px;
@@ -71,7 +68,9 @@
 
     .auth-container {
         margin-top: -100px;
+        min-height: calc(100vh - 150px);
         flex-direction: column;
+        justify-content: center;
         gap: 20px;
         padding-top: 0;
     }
@@ -80,16 +79,13 @@
         width: min(70%, 450px);
     }
 
-    .auth-mascot {
-        max-height: 350px;
-    }
-
     .auth-card {
         flex: auto;
         max-width: 600px;
     }
 }
 
+/* Mobile */
 @media (max-width: 600px) {
     .auth-header {
         height: 120px;
@@ -106,11 +102,8 @@
 
     .auth-container {
         margin-top: -30px;
+        min-height: calc(100vh - 100px);
         padding: 0 15px 25px;
-    }
-
-    .auth-mascot {
-        max-height: 250px;
     }
 
     .auth-card {
