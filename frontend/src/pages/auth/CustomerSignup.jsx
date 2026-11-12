@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import {
     User,
@@ -60,6 +61,80 @@ function CustomerSignup() {
             [e.target.name]: e.target.value
         }));
     };
+
+
+const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    setSuccess('');
+
+    if (!agreeToTerms) {
+        setError('Please agree to the Terms and Conditions.');
+        return;
+    }
+
+    try {
+        setLoading(true);
+
+        const credential = credentialResponse.credential;
+
+        let response;
+
+        try {
+            // First attempt without phone number
+            response = await axios.post(
+                `${API_URL}/google-login`,
+                { credential }
+            );
+
+        } catch (err) {
+            if (err.response?.data?.code === 'PHONE_REQUIRED') {
+
+                const phone = window.prompt(
+                    'Enter your 10-digit mobile number to complete registration:'
+                );
+
+                if (!phone) {
+                    setError('Phone number is required.');
+                    return;
+                }
+
+                if (!/^[0-9]{10}$/.test(phone.trim())) {
+                    setError('Please enter a valid 10-digit mobile number.');
+                    return;
+                }
+
+                // Retry with phone number
+                response = await axios.post(
+                    `${API_URL}/google-login`,
+                    {
+                        credential,
+                        phone: phone.trim()
+                    }
+                );
+
+            } else {
+                throw err;
+            }
+        }
+
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        );
+
+        navigate('/customer/dashboard');
+
+    } catch (err) {
+        setError(
+            err.response?.data?.message ||
+            'Google Sign-Up failed. Please try again.'
+        );
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     // Request OTP
     const handleSubmit = async (e) => {
@@ -221,20 +296,25 @@ function CustomerSignup() {
                 <form className="signup-form" onSubmit={handleSubmit}>
 
                     {/* Google Sign-Up */}
-                    <button
-                        type="button"
-                        className="google-signup"
-                        onClick={() =>
-                            setError('Google Sign-Up is not configured yet.')
-                        }
-                    >
-                        <img
-                            src="https://cdn-icons-png.flaticon.com/128/2702/2702602.png"
-                            alt=""
-                            className="google-icon-image"
-                        />
-                        Continue with Google
-                    </button>
+                    
+<div className="google-signup">
+    {loading ? (
+        'Please wait...'
+    ) : (
+        <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+                setError('Google authentication failed.');
+            }}
+            theme="outline"
+            size="large"
+            text="continue_with"
+            shape="rectangular"
+            width="350"
+        />
+    )}
+</div>
+
 
                     <div className="signup-divider">
                         <span>OR</span>

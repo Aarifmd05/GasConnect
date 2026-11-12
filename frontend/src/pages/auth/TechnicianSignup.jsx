@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 
 import {
@@ -34,6 +35,8 @@ function TechnicianSignup() {
         password: '',
         confirmPassword: ''
     });
+
+    const [googleSignupCredential, setGoogleSignupCredential] = useState('');
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -100,6 +103,72 @@ function TechnicianSignup() {
             [e.target.name]: e.target.value
         }));
     };
+
+
+const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    setSuccess('');
+
+    try {
+        setLoading(true);
+
+        const credential = credentialResponse.credential;
+
+        // Check whether this Google account already has a technician account
+        try {
+            const response = await axios.post(
+                'http://localhost:3006/api/users/technician/google-login',
+                { credential }
+            );
+
+            // Existing approved technician
+            sessionStorage.setItem('token', response.data.token);
+            sessionStorage.setItem(
+                'user',
+                JSON.stringify(response.data.user)
+            );
+
+            navigate('/technician/dashboard');
+            return;
+
+        } catch (err) {
+            if (
+                err.response?.data?.code !==
+                'TECHNICIAN_NOT_REGISTERED'
+            ) {
+                throw err;
+            }
+        }
+
+        // New technician: prepare registration form
+        const googlePayload = JSON.parse(
+            atob(credential.split('.')[1])
+        );
+
+        setFormData((previous) => ({
+            ...previous,
+            name: googlePayload.name || '',
+            email: googlePayload.email || '',
+            password: '',
+            confirmPassword: ''
+        }));
+
+        setGoogleSignupCredential(credential);
+
+        setSuccess(
+            'Google verified! Complete your technician registration below.'
+        );
+
+    } catch (err) {
+        setError(
+            err.response?.data?.message ||
+            'Google authentication failed. Please try again.'
+        );
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     // Handle profile photo selection
     const handlePhotoChange = (e) => {
@@ -214,81 +283,140 @@ function TechnicianSignup() {
         }, 'image/jpeg', 0.9);
     };
 
-    // Request Technician Signup OTP
-    const handleSubmit = async (e) => {
-        e.preventDefault();
 
-        setError('');
-        setSuccess('');
+// Request Technician Signup OTP / Google Signup
+const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match.');
-            return;
-        }
+    setError('');
+    setSuccess('');
 
-        if (!agreeToTerms) {
-            setError('Please agree to the Terms and Conditions.');
-            return;
-        }
+    // Password validation only for normal signup
+    if (
+        !googleSignupCredential &&
+        formData.password !== formData.confirmPassword
+    ) {
+        setError('Passwords do not match.');
+        return;
+    }
 
-        if (!profilePhoto) {
-            setError('Please take your profile photo.');
-            return;
-        }
+    // Terms validation
+    if (!agreeToTerms) {
+        setError('Please agree to the Terms and Conditions.');
+        return;
+    }
 
-        if (!/^[0-9]{10}$/.test(formData.phone.trim())) {
-            setError('Please enter a valid 10-digit mobile number.');
-            return;
-        }
+    // Profile photo validation
+    if (!profilePhoto) {
+        setError('Please take your profile photo.');
+        return;
+    }
 
-        try {
-            setLoading(true);
+    // Phone validation
+    if (!/^[0-9]{10}$/.test(formData.phone.trim())) {
+        setError('Please enter a valid 10-digit mobile number.');
+        return;
+    }
 
-            const signupData = new FormData();
+    // Specialization validation
+    if (!formData.specialization.trim()) {
+        setError('Please enter your specialization.');
+        return;
+    }
 
-            signupData.append('name', formData.name.trim());
+    // Experience validation
+    if (
+        formData.experience === '' ||
+        !Number.isFinite(Number(formData.experience)) ||
+        Number(formData.experience) < 0 ||
+        Number(formData.experience) > 60
+    ) {
+        setError('Please enter valid experience.');
+        return;
+    }
+
+    try {
+        setLoading(true);
+
+        const signupData = new FormData();
+
+        signupData.append('name', formData.name.trim());
+        signupData.append(
+            'email',
+            formData.email.trim().toLowerCase()
+        );
+        signupData.append('phone', formData.phone.trim());
+        signupData.append(
+            'specialization',
+            formData.specialization.trim()
+        );
+        signupData.append(
+            'experience',
+            Number(formData.experience)
+        );
+        signupData.append('profilePhoto', profilePhoto);
+
+        // ==================================
+        // GOOGLE TECHNICIAN SIGNUP
+        // ==================================
+        if (googleSignupCredential) {
             signupData.append(
-                'email',
-                formData.email.trim().toLowerCase()
+                'credential',
+                googleSignupCredential
             );
-            signupData.append('phone', formData.phone.trim());
-            signupData.append(
-                'specialization',
-                formData.specialization.trim()
-            );
-            signupData.append(
-                'experience',
-                Number(formData.experience)
-            );
-            signupData.append('password', formData.password);
-            signupData.append('profilePhoto', profilePhoto);
 
             const response = await axios.post(
-                'http://localhost:3006/api/users/technician/signup/request-otp',
+                'http://localhost:3006/api/users/technician/google-signup',
                 signupData
             );
 
-            setOtpSent(true);
-            setResendTimer(60);
-
             setSuccess(
                 response.data.message ||
-                'Verification OTP sent to your email.'
+                'Technician registration successful! Waiting for Admin approval.'
             );
 
-        } catch (err) {
-            console.error('Technician Signup Error:', err);
-            console.error('Backend Response:', err.response?.data);
+            // Clear Google registration state
+            setGoogleSignupCredential('');
 
-            setError(
-                err.response?.data?.message ||
-                'Unable to send OTP. Please try again.'
-            );
+            // Navigate to login after successful registration
+            setTimeout(() => {
+                navigate('/technician/login');
+            }, 2000);
 
-        } finally {
-            setLoading(false);
+            return;
         }
-    };
+
+        // ==================================
+        // NORMAL EMAIL / PASSWORD SIGNUP
+        // ==================================
+        signupData.append('password', formData.password);
+
+        const response = await axios.post(
+            'http://localhost:3006/api/users/technician/signup/request-otp',
+            signupData
+        );
+
+        setOtpSent(true);
+        setResendTimer(60);
+
+        setSuccess(
+            response.data.message ||
+            'Verification OTP sent to your email.'
+        );
+
+    } catch (err) {
+        console.error('Technician Signup Error:', err);
+        console.error('Backend Response:', err.response?.data);
+
+        setError(
+            err.response?.data?.message ||
+            'Unable to complete registration. Please try again.'
+        );
+
+    } finally {
+        setLoading(false);
+    }
+};
 
     // Verify Technician Signup OTP
     const handleVerifyOTP = async (e) => {
@@ -430,21 +558,22 @@ function TechnicianSignup() {
                 >
 
                     {/* Google Sign-Up */}
-                    <button
-                        type="button"
-                        className="google-signup"
-                        onClick={() =>
-                            setError('Google Sign-Up is not configured yet.')
-                        }
-                    >
-                        <img
-                            src="https://cdn-icons-png.flaticon.com/128/2702/2702602.png"
-                            alt=""
-                            className="google-icon-image"
-                        />
+                    
+{/* Google Sign-Up */}
+<div className="google-signup">
+    <GoogleLogin
+        onSuccess={handleGoogleSuccess}
+        onError={() => {
+            setError('Google authentication failed.');
+        }}
+        theme="outline"
+        size="large"
+        text="continue_with"
+        shape="rectangular"
+        width="300"
+    />
+</div>
 
-                        Continue with Google
-                    </button>
 
                     <div className="technician-signup-divider">
                         <span>OR</span>

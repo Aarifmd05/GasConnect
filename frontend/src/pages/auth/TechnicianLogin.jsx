@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Mail, Lock } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 import AuthLayout from '../../components/AuthLayout';
 import logo from '../../assets/logo.png';
@@ -43,6 +44,39 @@ function TechnicianLogin() {
         }
     };
 
+
+const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+
+    try {
+        setLoading(true);
+
+        const response = await axios.post(
+            'http://localhost:3006/api/users/technician/google-login',
+            {
+                credential: credentialResponse.credential
+            }
+        );
+
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        );
+
+        navigate('/technician/dashboard');
+
+    } catch (err) {
+        setError(
+            err.response?.data?.message ||
+            'Google login failed. Please try again.'
+        );
+    } finally {
+        setLoading(false);
+    }
+};
+
+
     return (
         <AuthLayout logo={logo} illustration={mascot}>
             <div className="technician-login-heading">
@@ -50,18 +84,25 @@ function TechnicianLogin() {
             </div>
 
             <form className="technician-login-form" onSubmit={handleSubmit}>
-                <button
-                    type="button"
-                    className="technician-google-button"
-                    onClick={() => setError('Google Login is not configured yet.')}
-                >
-                    <img
-                        src="https://cdn-icons-png.flaticon.com/128/2702/2702602.png"
-                        alt="Google"
-                        className="technician-google-icon"
-                    />
-                    Continue with Google
-                </button>
+                
+<div className="technician-google-button">
+    {loading ? (
+        'Signing in with Google...'
+    ) : (
+        <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+                setError('Google authentication failed.');
+            }}
+            theme="outline"
+            size="large"
+            text="continue_with"
+            shape="rectangular"
+            width="300"
+        />
+    )}
+</div>
+
 
                 <div className="technician-login-divider">
                     <span>or</span>

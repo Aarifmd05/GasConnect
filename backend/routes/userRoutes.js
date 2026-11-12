@@ -1905,6 +1905,296 @@ router.post('/customer/google-login', async (req, res) => {
     }
 });
 
+// Google Technician Login API
+router.post('/technician/google-login', async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({
+                message: 'Google credential is required.'
+            });
+        }
+
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.JWT_SECRET) {
+            return res.status(500).json({
+                message: 'Authentication configuration is missing.'
+            });
+        }
+
+        // Verify Google ID token
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+
+        if (
+            !payload ||
+            !payload.email ||
+            !payload.sub ||
+            payload.email_verified !== true
+        ) {
+            return res.status(401).json({
+                message: 'Invalid or unverified Google account.'
+            });
+        }
+
+        const googleEmail = payload.email.trim().toLowerCase();
+
+        // Prevent Admin from using Technician Login
+        if (googleEmail === 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'Please use Admin Login.'
+            });
+        }
+
+        // Find existing technician account
+        const technician = await User.findOne({
+            email: googleEmail
+        });
+
+        if (!technician) {
+            return res.status(404).json({
+                code: 'TECHNICIAN_NOT_REGISTERED',
+                message: 'Technician account not found. Please register first.'
+            });
+        }
+
+        // Check account role
+        if (technician.role !== 'technician') {
+            return res.status(403).json({
+                message: 'This email is registered with another account type.'
+            });
+        }
+
+        // Prevent Google account takeover
+        if (
+            technician.googleId &&
+            technician.googleId !== payload.sub
+        ) {
+            return res.status(403).json({
+                message: 'This account is linked to another Google account.'
+            });
+        }
+
+        // Check Admin approval
+        if (technician.approvalStatus === 'pending') {
+            return res.status(403).json({
+                message: 'Your account is waiting for Admin approval.'
+            });
+        }
+
+        if (technician.approvalStatus === 'rejected') {
+            return res.status(403).json({
+                message: 'Your technician registration has been rejected. Please contact Admin.'
+            });
+        }
+
+        if (technician.approvalStatus !== 'approved') {
+            return res.status(403).json({
+                message: 'Your technician account is not approved.'
+            });
+        }
+
+        // Link Google account
+        technician.googleId = payload.sub;
+        technician.authProvider = 'google';
+        technician.emailVerified = true;
+
+        await technician.save();
+
+        // Generate JWT
+        const token = jwt.sign(
+            {
+                id: technician._id.toString(),
+                role: 'technician'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(200).json({
+            message: 'Google technician login successful.',
+            token,
+            user: {
+                id: technician._id,
+                name: technician.name,
+                email: technician.email,
+                phone: technician.phone,
+                role: technician.role,
+                approvalStatus: technician.approvalStatus
+            }
+        });
+
+    } catch (error) {
+        console.error('Google technician login error:', error.message);
+
+        return res.status(401).json({
+            message: 'Google authentication failed. Please try again.'
+        });
+    }
+});
+
+// Google Technician Signup API
+router.post(
+    '/technician/google-signup',
+    upload.single('profilePhoto'),
+    async (req, res) => {
+        try {
+            const {
+                credential,
+                phone,
+                specialization,
+                experience
+            } = req.body || {};
+
+            // Validate required fields
+            if (!credential) {
+                return res.status(400).json({
+                    message: 'Google credential is required.'
+                });
+            }
+
+            if (!process.env.GOOGLE_CLIENT_ID) {
+                return res.status(500).json({
+                    message: 'Google authentication is not configured.'
+                });
+            }
+
+            if (!/^[0-9]{10}$/.test(phone || '')) {
+                return res.status(400).json({
+                    message: 'Please enter a valid 10-digit phone number.'
+                });
+            }
+
+            if (
+                typeof specialization !== 'string' ||
+                !specialization.trim() ||
+                specialization.trim().length > 100
+            ) {
+                return res.status(400).json({
+                    message: 'Please enter a valid specialization.'
+                });
+            }
+
+            if (
+                experience === undefined ||
+                experience === '' ||
+                !Number.isFinite(Number(experience)) ||
+                Number(experience) < 0 ||
+                Number(experience) > 60
+            ) {
+                return res.status(400).json({
+                    message: 'Please enter valid experience.'
+                });
+            }
+
+            if (!req.file) {
+                return res.status(400).json({
+                    message: 'Technician profile photo is required.'
+                });
+            }
+
+            // Verify Google ID token on backend
+            const ticket = await googleClient.verifyIdToken({
+                idToken: credential,
+                audience: process.env.GOOGLE_CLIENT_ID
+            });
+
+            const payload = ticket.getPayload();
+
+            if (
+                !payload ||
+                !payload.email ||
+                !payload.sub ||
+                payload.email_verified !== true
+            ) {
+                return res.status(401).json({
+                    message: 'Invalid or unverified Google account.'
+                });
+            }
+
+            const googleEmail = payload.email.trim().toLowerCase();
+
+            // Prevent Admin registration as Technician
+            if (googleEmail === 'gasconnect4@gmail.com') {
+                return res.status(403).json({
+                    message: 'Admin account cannot register as Technician.'
+                });
+            }
+
+            // Check duplicate email across all roles
+            const existingUser = await User.findOne({
+                email: googleEmail
+            });
+
+            if (existingUser) {
+                return res.status(409).json({
+                    message: 'This email is already registered. Please use the correct login page.'
+                });
+            }
+
+            // Upload profile photo to Cloudinary
+            const profilePhoto = await uploadToCloudinary(
+                req.file.buffer
+            );
+
+            if (!profilePhoto) {
+                return res.status(500).json({
+                    message: 'Unable to upload technician profile photo.'
+                });
+            }
+
+            // Create technician account
+            const technician = new User({
+                name: payload.name || 'Technician',
+                email: googleEmail,
+                phone: phone.trim(),
+                specialization: specialization.trim(),
+                experience: Number(experience),
+                profilePhoto,
+                role: 'technician',
+                authProvider: 'google',
+                googleId: payload.sub,
+                emailVerified: true,
+                approvalStatus: 'pending'
+            });
+
+            await technician.save();
+
+            return res.status(201).json({
+                message: 'Technician registration successful! Waiting for Admin approval.',
+                user: {
+                    id: technician._id,
+                    name: technician.name,
+                    email: technician.email,
+                    phone: technician.phone,
+                    role: technician.role,
+                    approvalStatus: technician.approvalStatus
+                }
+            });
+
+        } catch (error) {
+            console.error(
+                'Google technician signup error:',
+                error.message
+            );
+
+            if (error.code === 11000) {
+                return res.status(409).json({
+                    message: 'This email or Google account is already registered.'
+                });
+            }
+
+            return res.status(500).json({
+                message: 'Technician Google registration failed. Please try again.'
+            });
+        }
+    }
+);
+
 
 // Customer Profile Update API
 router.put('/customer/profile', authMiddleware, async (req, res) => {
