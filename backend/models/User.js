@@ -76,6 +76,7 @@ const addressSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
 
+    // Basic Details
     name: {
         type: String,
         required: true,
@@ -89,6 +90,21 @@ const userSchema = new mongoose.Schema({
         }
     },
 
+    firstName: {
+        type: String,
+        trim: true,
+        maxlength: 50,
+        default: ''
+    },
+
+    lastName: {
+        type: String,
+        trim: true,
+        maxlength: 50,
+        default: ''
+    },
+
+    // Email Details
     email: {
         type: String,
         required: true,
@@ -99,31 +115,41 @@ const userSchema = new mongoose.Schema({
         match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
 
+    emailVerified: {
+        type: Boolean,
+        default: true
+    },
+
+    // Authentication Details
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local'
+    },
+
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true,
+        default: undefined
+    },
+
     password: {
         type: String,
-        required: true,
+        required: function () {
+            return this.authProvider === 'local';
+        },
         minlength: 8,
         maxlength: 128,
         match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,}$/
     },
 
+    // Contact Details
     phone: {
         type: String,
         required: true,
         match: /^\d{10}$/
-    },
-
-    // Admin Profile Details
-    firstName: {
-        type: String,
-        trim: true,
-        maxlength: 50
-    },
-
-    lastName: {
-        type: String,
-        trim: true,
-        maxlength: 50
     },
 
     alternativeEmail: {
@@ -141,6 +167,7 @@ const userSchema = new mongoose.Schema({
         default: ''
     },
 
+    // Personal Details
     dateOfBirth: {
         type: Date,
         default: null
@@ -165,9 +192,7 @@ const userSchema = new mongoose.Schema({
         default: 'customer'
     },
 
-    // Technician Details
-
-    // Technician Profile Photo
+    // Technician Profile Details
     profilePhoto: {
         type: String,
         trim: true,
@@ -178,27 +203,20 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
         maxlength: 100,
-        required: function () {
-            return this.role === 'technician';
-        }
+        default: ''
     },
 
     experience: {
         type: Number,
         min: 0,
         max: 60,
-        required: function () {
-            return this.role === 'technician';
-        }
+        default: null
     },
 
     approvalStatus: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],
-        default: 'pending',
-        required: function () {
-            return this.role === 'technician';
-        }
+        default: 'pending'
     }
 
 }, { timestamps: true });
@@ -210,7 +228,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre('save', async function () {
 
-    if (!this.isModified('password')) {
+    if (!this.password || !this.isModified('password')) {
         return;
     }
 

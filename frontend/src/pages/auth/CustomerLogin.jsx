@@ -2,12 +2,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { GoogleLogin } from '@react-oauth/google';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 import AuthLayout from '../../components/AuthLayout';
-
 import logo from '../../assets/logo.png';
-
 import './CustomerLogin.css';
 
 function CustomerLogin() {
@@ -17,8 +16,10 @@ function CustomerLogin() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Normal email/password login
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -27,9 +28,9 @@ function CustomerLogin() {
             setLoading(true);
 
             const response = await axios.post(
-    'http://localhost:3006/api/users/customer/login',
-    { email, password }
-);
+                'http://localhost:3006/api/users/customer/login',
+                { email, password }
+            );
 
             sessionStorage.setItem('token', response.data.token);
             sessionStorage.setItem('user', JSON.stringify(response.data.user));
@@ -46,6 +47,76 @@ function CustomerLogin() {
         }
     };
 
+    // Google login
+    
+const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+
+    try {
+        setGoogleLoading(true);
+
+        const credential = credentialResponse.credential;
+
+        let response;
+
+        try {
+            // First attempt
+            response = await axios.post(
+                'http://localhost:3006/api/users/customer/google-login',
+                { credential }
+            );
+
+        } catch (err) {
+            // New customer needs a phone number
+            if (err.response?.data?.code === 'PHONE_REQUIRED') {
+
+                const phone = window.prompt(
+                    'Enter your 10-digit mobile number to complete registration:'
+                );
+
+                if (!phone) {
+                    setError('Phone number is required for registration.');
+                    return;
+                }
+
+                if (!/^[0-9]{10}$/.test(phone.trim())) {
+                    setError('Please enter a valid 10-digit phone number.');
+                    return;
+                }
+
+                // Retry with phone number
+                response = await axios.post(
+                    'http://localhost:3006/api/users/customer/google-login',
+                    {
+                        credential,
+                        phone: phone.trim()
+                    }
+                );
+
+            } else {
+                throw err;
+            }
+        }
+
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        );
+
+        navigate('/customer/dashboard');
+
+    } catch (err) {
+        setError(
+            err.response?.data?.message ||
+            'Google login failed. Please try again.'
+        );
+    } finally {
+        setGoogleLoading(false);
+    }
+};
+
+
     return (
         <AuthLayout logo={logo}>
 
@@ -56,7 +127,6 @@ function CustomerLogin() {
 
             <form className="login-form" onSubmit={handleSubmit}>
 
-                {/* Email */}
                 <div className="login-input-group">
                     <Mail />
                     <input
@@ -68,7 +138,6 @@ function CustomerLogin() {
                     />
                 </div>
 
-                {/* Password */}
                 <div className="login-input-group">
                     <Lock />
                     <input
@@ -89,7 +158,6 @@ function CustomerLogin() {
                     </button>
                 </div>
 
-                {/* Login options */}
                 <div className="login-options">
                     <Link to="/customer/forgot-password">
                         Forgot password?
@@ -107,7 +175,6 @@ function CustomerLogin() {
 
                 {error && <p className="login-error">{error}</p>}
 
-                {/* Sign In */}
                 <button
                     type="submit"
                     className="login-submit"
@@ -116,26 +183,28 @@ function CustomerLogin() {
                     {loading ? 'Signing In...' : 'Sign In'}
                 </button>
 
-                {/* Divider */}
                 <div className="login-divider">
                     <span>OR</span>
                 </div>
 
-                {/* Google Login */}
-                <button
-                    type="button"
-                    className="google-login"
-                    onClick={() => setError('Google Login is not configured yet.')}
-                >
-                    <img
-                        src="https://cdn-icons-png.flaticon.com/128/2702/2702602.png"
-                        alt="Google"
-                        className="google-icon-image"
-                    />
-                    Continue with Google
-                </button>
+                <div className="google-login">
+                    {googleLoading ? (
+                        'Signing in with Google...'
+                    ) : (
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => {
+                                setError('Google authentication failed.');
+                            }}
+                            theme="outline"
+                            size="large"
+                            text="continue_with"
+                            shape="rectangular"
+                            width="280"
+                        />
+                    )}
+                </div>
 
-                {/* Signup link */}
                 <p className="login-signup-link">
                     Don't have an account?{' '}
                     <Link to="/customer/signup">Sign Up</Link>

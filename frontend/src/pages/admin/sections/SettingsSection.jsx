@@ -606,13 +606,13 @@ function SettingsSection() {
                                 <label>Email Address *</label>
 
                                 <input
-                                    type="email"
-                                    name="email"
-                                    value={profileForm.email}
-                                    onChange={handleProfileChange}
-                                    placeholder="Enter email address"
-                                    required
-                                />
+    type="email"
+    name="email"
+    value={profileForm.email}
+    readOnly
+    placeholder="Enter email address"
+    required
+/>
                             </div>
 
                             <div className="settings-form-group">

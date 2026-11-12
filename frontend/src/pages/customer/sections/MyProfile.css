@@ -307,3 +307,12 @@
     width: 100%;
   }
 }
+
+.profile-input-wrapper input:read-only {
+  color: #8492A8;
+  cursor: not-allowed;
+}
+
+.profile-input-wrapper:has(input:read-only) {
+  background: #F8FAFC;
+}

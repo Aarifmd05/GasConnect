@@ -62,9 +62,14 @@ function AdminForgotPassword() {
                 }
             );
 
-            setResetToken(response.data.resetToken);
-            setMessage('OTP verified successfully!');
-            setStep(3);
+            if (!response.data.resetToken) {
+    setError('Password reset token was not received. Please try again.');
+    return;
+}
+
+setResetToken(response.data.resetToken);
+setMessage('OTP verified successfully!');
+setStep(3);
         } catch (err) {
             setError(
                 err.response?.data?.message || 'OTP verification failed.'

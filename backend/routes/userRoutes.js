@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 
 import authMiddleware from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
@@ -16,6 +17,7 @@ import cloudinary from '../config/cloudinary.js';
 
 const router = express.Router();
 
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ==========================================
 // COMMON VALIDATION FOR ALL ACCOUNT TYPES
@@ -159,6 +161,8 @@ const requestSignupOTP = async (req, res, role) => {
         }
 
         const normalizedEmail = email.trim().toLowerCase();
+
+       
 
         // Additional technician validation
         if (role === 'technician') {
@@ -658,6 +662,13 @@ router.post('/admin/forgot-password', async (req, res) => {
 
         const normalizedEmail = email.trim().toLowerCase();
 
+        // Only the authorized GasConnect admin can reset an admin password
+if (normalizedEmail !== 'gasconnect4@gmail.com') {
+    return res.status(403).json({
+        message: 'This email is not authorized for admin password recovery.'
+    });
+}
+
         // Find admin account
         const admin = await User.findOne({
             email: normalizedEmail,
@@ -732,6 +743,7 @@ router.post('/admin/forgot-password', async (req, res) => {
     }
 });
 
+
 // Admin - Verify Password Reset OTP
 router.post('/admin/verify-reset-otp', async (req, res) => {
     try {
@@ -750,6 +762,25 @@ router.post('/admin/verify-reset-otp', async (req, res) => {
         }
 
         const normalizedEmail = email.trim().toLowerCase();
+
+        // Allow only the authorized GasConnect admin
+        if (normalizedEmail !== 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'This email is not authorized for admin password recovery.'
+            });
+        }
+
+        // Find the existing admin account
+        const admin = await User.findOne({
+            email: normalizedEmail,
+            role: 'admin'
+        });
+
+        if (!admin) {
+            return res.status(404).json({
+                message: 'Admin account not found.'
+            });
+        }
 
         // Admin-specific OTP query
         const adminOTPQuery = {
@@ -786,7 +817,10 @@ router.post('/admin/verify-reset-otp', async (req, res) => {
         }
 
         // Compare entered OTP with stored hash
-        const isOTPValid = await bcrypt.compare(otp, otpRecord.otpHash);
+        const isOTPValid = await bcrypt.compare(
+            otp,
+            otpRecord.otpHash
+        );
 
         if (!isOTPValid) {
             otpRecord.attempts += 1;
@@ -794,20 +828,6 @@ router.post('/admin/verify-reset-otp', async (req, res) => {
 
             return res.status(400).json({
                 message: 'Incorrect OTP. Please try again.'
-            });
-        }
-
-        // Verify admin account
-        const admin = await User.findOne({
-            email: normalizedEmail,
-            role: 'admin'
-        });
-
-        if (!admin) {
-            await PasswordResetOTP.deleteMany(adminOTPQuery);
-
-            return res.status(400).json({
-                message: 'Unable to verify admin account.'
             });
         }
 
@@ -822,7 +842,8 @@ router.post('/admin/verify-reset-otp', async (req, res) => {
         const resetToken = jwt.sign(
             {
                 id: admin._id.toString(),
-                email: admin.email,
+                email: normalizedEmail,
+                role: 'admin',
                 purpose: 'admin-password-reset'
             },
             process.env.JWT_SECRET,
@@ -846,13 +867,18 @@ router.post('/admin/verify-reset-otp', async (req, res) => {
     }
 });
 
+
+
 // Admin - Reset Password
 router.post('/admin/reset-password', async (req, res) => {
     try {
         const { resetToken, newPassword } = req.body || {};
 
         // Validate reset token
-        if (typeof resetToken !== 'string' || !resetToken.trim()) {
+        if (
+            typeof resetToken !== 'string' ||
+            !resetToken.trim()
+        ) {
             return res.status(400).json({
                 message: 'A valid reset token is required.'
             });
@@ -879,7 +905,10 @@ router.post('/admin/reset-password', async (req, res) => {
         let decoded;
 
         try {
-            decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+            decoded = jwt.verify(
+                resetToken,
+                process.env.JWT_SECRET
+            );
         } catch {
             return res.status(401).json({
                 message: 'Password reset session expired or invalid. Please start again.'
@@ -889,18 +918,20 @@ router.post('/admin/reset-password', async (req, res) => {
         // Verify token purpose and account details
         if (
             decoded.purpose !== 'admin-password-reset' ||
+            decoded.role !== 'admin' ||
             !decoded.id ||
-            !decoded.email
+            !decoded.email ||
+            decoded.email.toLowerCase() !== 'gasconnect4@gmail.com'
         ) {
             return res.status(401).json({
                 message: 'Invalid password reset session.'
             });
         }
 
-        // Find admin account
+        // Find only the authorized admin account
         const admin = await User.findOne({
             _id: decoded.id,
-            email: decoded.email,
+            email: 'gasconnect4@gmail.com',
             role: 'admin'
         });
 
@@ -908,6 +939,20 @@ router.post('/admin/reset-password', async (req, res) => {
             return res.status(404).json({
                 message: 'Admin account not found.'
             });
+        }
+
+        // Prevent reusing the existing password
+        if (admin.password) {
+            const isSamePassword = await bcrypt.compare(
+                newPassword,
+                admin.password
+            );
+
+            if (isSamePassword) {
+                return res.status(400).json({
+                    message: 'New password must be different from your current password.'
+                });
+            }
         }
 
         // Update password
@@ -926,7 +971,6 @@ router.post('/admin/reset-password', async (req, res) => {
         });
     }
 });
-
 
 // =============================================
 // TECHNICIAN - FORGOT PASSWORD: SEND OTP
@@ -1517,6 +1561,16 @@ const loginUser = async (req, res, role) => {
 
         const normalizedEmail = email.trim().toLowerCase();
 
+        // Restrict admin email/password login to the authorized admin
+if (
+    role === 'admin' &&
+    normalizedEmail !== 'gasconnect4@gmail.com'
+) {
+    return res.status(403).json({
+        message: 'This email is not authorized for admin login.'
+    });
+}
+
         const user = await User.findOne({
             email: normalizedEmail,
             role
@@ -1527,6 +1581,12 @@ const loginUser = async (req, res, role) => {
                 message: 'Invalid email or password'
             });
         }
+
+        if (!user.password) {
+    return res.status(401).json({
+        message: 'Invalid email or password'
+    });
+}
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -1576,15 +1636,116 @@ const loginUser = async (req, res, role) => {
     }
 };
 
+// Admin Email and Password Login API
+router.post('/admin/login', (req, res) => {
+    loginUser(req, res, 'admin');
+});
+
 // Customer Login API
 router.post('/customer/login', (req, res) => {
     loginUser(req, res, 'customer');
 });
 
-// Admin Login API
-router.post('/admin/login', (req, res) => {
-    loginUser(req, res, 'admin');
+
+// Google Admin Login API
+router.post('/admin/google-login', async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({
+                message: 'Google credential is required.'
+            });
+        }
+
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.JWT_SECRET) {
+            return res.status(500).json({
+                message: 'Authentication configuration is missing.'
+            });
+        }
+
+        // Verify Google ID token on the backend
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+
+        if (!payload || !payload.email || !payload.sub) {
+            return res.status(401).json({
+                message: 'Invalid Google account information.'
+            });
+        }
+
+        const googleEmail = payload.email.trim().toLowerCase();
+
+        // Only the authorized admin email is allowed
+        if (
+            googleEmail !== 'gasconnect4@gmail.com' ||
+            payload.email_verified !== true
+        ) {
+            return res.status(403).json({
+                message: 'Access denied. This Google account is not authorized as an admin.'
+            });
+        }
+
+        // Find the existing admin account
+        const admin = await User.findOne({
+            email: 'gasconnect4@gmail.com',
+            role: 'admin'
+        });
+
+        if (!admin) {
+            return res.status(404).json({
+                message: 'Authorized admin account was not found.'
+            });
+        }
+
+        // Prevent another Google account from taking over the admin account
+        if (admin.googleId && admin.googleId !== payload.sub) {
+            return res.status(403).json({
+                message: 'This admin account is already linked to another Google account.'
+            });
+        }
+
+        // Link the verified Google identity to the existing admin
+        admin.googleId = payload.sub;
+        admin.authProvider = 'google';
+        admin.emailVerified = true;
+
+        await admin.save();
+
+        // Generate GasConnect JWT
+        const token = jwt.sign(
+            {
+                id: admin._id.toString(),
+                role: 'admin'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(200).json({
+            message: 'Google admin login successful.',
+            token,
+            user: {
+                id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Google admin login error:', error.message);
+
+        return res.status(401).json({
+            message: 'Google authentication failed. Please try again.'
+        });
+    }
 });
+
 
 // Technician Login API
 router.post('/technician/login', (req, res) => {
@@ -1619,8 +1780,212 @@ router.get('/customer/profile', authMiddleware, async (req, res) => {
     }
 });
 
-// Technician Profile API
-router.get('/technician/profile', authMiddleware, async (req, res) => {
+
+// Google Customer Login API
+router.post('/customer/google-login', async (req, res) => {
+    try {
+        const { credential, phone } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({
+                message: 'Google credential is required.'
+            });
+        }
+
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.JWT_SECRET) {
+            return res.status(500).json({
+                message: 'Authentication configuration is missing.'
+            });
+        }
+
+        // Verify Google ID token
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+
+        if (
+            !payload ||
+            !payload.email ||
+            !payload.sub ||
+            payload.email_verified !== true
+        ) {
+            return res.status(401).json({
+                message: 'Invalid or unverified Google account.'
+            });
+        }
+
+        const googleEmail = payload.email.trim().toLowerCase();
+
+        // Admin cannot use customer login
+        if (googleEmail === 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'Please use Admin Login.'
+            });
+        }
+
+        // Check whether account already exists
+        let customer = await User.findOne({ email: googleEmail });
+
+        if (customer) {
+            // Prevent login using another role
+            if (customer.role !== 'customer') {
+                return res.status(403).json({
+                    message: 'This email is registered with another account type.'
+                });
+            }
+
+            // Prevent Google account takeover
+            if (
+                customer.googleId &&
+                customer.googleId !== payload.sub
+            ) {
+                return res.status(403).json({
+                    message: 'This account is linked to another Google account.'
+                });
+            }
+
+            customer.googleId = payload.sub;
+            customer.emailVerified = true;
+
+            await customer.save();
+
+        } else {
+            // New customer must provide phone number
+            if (!phone || !/^[0-9]{10}$/.test(phone)) {
+                return res.status(400).json({
+                    code: 'PHONE_REQUIRED',
+                    message: 'Please provide a valid 10-digit phone number.'
+                });
+            }
+
+            customer = new User({
+                name: payload.name || 'Customer',
+                email: googleEmail,
+                phone,
+                role: 'customer',
+                authProvider: 'google',
+                googleId: payload.sub,
+                emailVerified: true
+            });
+
+            await customer.save();
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+            {
+                id: customer._id.toString(),
+                role: 'customer'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(200).json({
+            message: 'Google customer login successful.',
+            token,
+            user: {
+                id: customer._id,
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone,
+                role: customer.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Google customer login error:', error.message);
+
+        return res.status(401).json({
+            message: 'Google authentication failed. Please try again.'
+        });
+    }
+});
+
+
+// Customer Profile Update API
+router.put('/customer/profile', authMiddleware, async (req, res) => {
+    try {
+        if (req.user.role !== 'customer') {
+            return res.status(403).json({
+                message: 'Access denied. Customers only.'
+            });
+        }
+
+        const { name, email, phone } = req.body || {};
+
+        const user = await User.findOne({
+            _id: req.user.id,
+            role: 'customer'
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Customer account not found.'
+            });
+        }
+
+        // Registered email cannot be changed
+        if (
+            typeof email !== 'string' ||
+            email.trim().toLowerCase() !== user.email.toLowerCase()
+        ) {
+            return res.status(403).json({
+                message: 'Your registered email address cannot be changed.'
+            });
+        }
+
+        // Validate name
+        if (
+            typeof name !== 'string' ||
+            name.trim().length < 2 ||
+            name.trim().length > 50
+        ) {
+            return res.status(400).json({
+                message: 'Name must be between 2 and 50 characters.'
+            });
+        }
+
+        // Phone number is editable but must contain exactly 10 digits
+        const cleanPhone = typeof phone === 'string' ? phone.trim() : '';
+
+        if (!/^\d{10}$/.test(cleanPhone)) {
+            return res.status(400).json({
+                message: 'Phone number must be exactly 10 digits.'
+            });
+        }
+
+        // Update permitted fields
+        user.name = name.trim();
+        user.phone = cleanPhone;
+
+        await user.save();
+
+        return res.status(200).json({
+            message: 'Customer profile updated successfully!',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Customer profile update error:', error);
+
+        return res.status(500).json({
+            message: 'Unable to update customer profile.'
+        });
+    }
+});
+
+// Technician Profile Update API
+router.put('/technician/profile', authMiddleware, async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
             return res.status(403).json({
@@ -1628,52 +1993,224 @@ router.get('/technician/profile', authMiddleware, async (req, res) => {
             });
         }
 
-        const technician = await User.findById(req.user.id).select('-password');
+        const technician = await User.findOne({
+            _id: req.user.id,
+            role: 'technician'
+        });
 
         if (!technician) {
-            return res.status(404).json({ message: 'Technician not found' });
-        }
-
-        res.status(200).json({
-            message: 'Technician profile fetched successfully!',
-            technician
-        });
-    } catch (error) {
-        console.error('Technician profile error:', error.message);
-
-        res.status(500).json({
-            message: 'Failed to fetch technician profile'
-        });
-    }
-});
-
-// Admin Profile API
-router.get('/admin/profile', authMiddleware, async (req, res) => {
-    try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({
-                message: 'Access denied. Admins only.'
+            return res.status(404).json({
+                message: 'Technician account not found.'
             });
         }
 
-        const admin = await User.findById(req.user.id).select('-password');
+        const {
+            name,
+            firstName,
+            lastName,
+            email,
+            phone,
+            alternativeEmail,
+            alternativePhone,
+            dateOfBirth,
+            gender,
+            specialization,
+            experience,
+            profilePhoto
+        } = req.body || {};
 
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
+        // Registered email cannot be changed
+        if (
+            email !== undefined &&
+            (
+                typeof email !== 'string' ||
+                email.trim().toLowerCase() !== technician.email.toLowerCase()
+            )
+        ) {
+            return res.status(403).json({
+                message: 'Your registered email address cannot be changed.'
+            });
         }
 
-        res.status(200).json({
-            message: 'Profile fetched successfully!',
-            admin
-        });
-    } catch (error) {
-        console.error('Admin profile error:', error.message);
+        // Validate and update name
+        if (name !== undefined) {
+            if (typeof name !== 'string' || name.trim().length < 2) {
+                return res.status(400).json({
+                    message: 'Please enter a valid name.'
+                });
+            }
+            technician.name = name.trim();
+        }
 
-        res.status(500).json({
-            message: 'Failed to fetch profile'
+        // First and last name
+        if (firstName !== undefined) {
+            technician.firstName = String(firstName).trim();
+        }
+
+        if (lastName !== undefined) {
+            technician.lastName = String(lastName).trim();
+        }
+
+        // Phone number is editable
+        if (phone !== undefined) {
+            const cleanPhone = String(phone).trim();
+
+            if (!/^\d{10}$/.test(cleanPhone)) {
+  return res.status(400).json({
+    message: 'Phone number must be exactly 10 digits'
+  });
+}
+
+user.phone = cleanPhone;
+        }
+
+        // Alternative email
+        if (alternativeEmail !== undefined) {
+            const cleanEmail = String(alternativeEmail).trim().toLowerCase();
+
+            if (
+                cleanEmail &&
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
+            ) {
+                return res.status(400).json({
+                    message: 'Please enter a valid alternative email.'
+                });
+            }
+
+            technician.alternativeEmail = cleanEmail;
+        }
+
+        // Alternative phone
+        if (alternativePhone !== undefined) {
+            const cleanPhone = String(alternativePhone).trim();
+
+            if (cleanPhone && !/^\d{10}$/.test(cleanPhone)) {
+                return res.status(400).json({
+                    message: 'Alternative phone must contain exactly 10 digits.'
+                });
+            }
+
+            technician.alternativePhone = cleanPhone;
+        }
+
+        // Date of birth
+        if (dateOfBirth !== undefined) {
+            if (dateOfBirth === null || dateOfBirth === '') {
+                technician.dateOfBirth = null;
+            } else {
+                const parsedDate = new Date(dateOfBirth);
+
+                if (Number.isNaN(parsedDate.getTime())) {
+                    return res.status(400).json({
+                        message: 'Please enter a valid date of birth.'
+                    });
+                }
+
+                technician.dateOfBirth = parsedDate;
+            }
+        }
+
+        // Gender
+        if (gender !== undefined) {
+            const allowedGenders = [
+                'Male',
+                'Female',
+                'Other',
+                'Prefer not to say'
+            ];
+
+            if (!allowedGenders.includes(gender)) {
+                return res.status(400).json({
+                    message: 'Please select a valid gender.'
+                });
+            }
+
+            technician.gender = gender;
+        }
+
+        // Specialization
+        if (specialization !== undefined) {
+            if (
+                typeof specialization !== 'string' ||
+                specialization.trim().length > 100
+            ) {
+                return res.status(400).json({
+                    message: 'Specialization must not exceed 100 characters.'
+                });
+            }
+
+            technician.specialization = specialization.trim();
+        }
+
+        // Experience
+        if (experience !== undefined) {
+            const cleanExperience = Number(experience);
+
+            if (
+                experience === '' ||
+                experience === null ||
+                !Number.isFinite(cleanExperience) ||
+                cleanExperience < 0 ||
+                cleanExperience > 60
+            ) {
+                return res.status(400).json({
+                    message: 'Experience must be between 0 and 60 years.'
+                });
+            }
+
+            technician.experience = cleanExperience;
+        }
+
+        // Profile photo
+        if (profilePhoto !== undefined) {
+            if (typeof profilePhoto !== 'string') {
+                return res.status(400).json({
+                    message: 'Invalid profile photo.'
+                });
+            }
+
+            technician.profilePhoto = profilePhoto.trim();
+        }
+
+        await technician.save();
+
+        return res.status(200).json({
+            message: 'Technician profile updated successfully!',
+            technician: {
+                id: technician._id,
+                name: technician.name,
+                firstName: technician.firstName,
+                lastName: technician.lastName,
+                email: technician.email,
+                phone: technician.phone,
+                alternativeEmail: technician.alternativeEmail,
+                alternativePhone: technician.alternativePhone,
+                dateOfBirth: technician.dateOfBirth,
+                gender: technician.gender,
+                specialization: technician.specialization,
+                experience: technician.experience,
+                profilePhoto: technician.profilePhoto,
+                role: technician.role,
+                approvalStatus: technician.approvalStatus
+            }
+        });
+
+    } catch (error) {
+        console.error('Technician profile update error:', error);
+
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            message: 'Unable to update technician profile.'
         });
     }
 });
+
+
 
 // Admin - Dashboard Statistics API
 router.get('/admin/dashboard-stats', authMiddleware, async (req, res) => {
@@ -1763,6 +2300,23 @@ router.put('/change-password', authMiddleware, async (req, res) => {
             });
         }
 
+        // Restrict admin password changes to the authorized admin
+        if (
+            user.role === 'admin' &&
+            user.email?.toLowerCase() !== 'gasconnect4@gmail.com'
+        ) {
+            return res.status(403).json({
+                message: 'Access denied.'
+            });
+        }
+
+        // Ensure the account supports password login
+        if (!user.password) {
+            return res.status(400).json({
+                message: 'Password login is not enabled for this account.'
+            });
+        }
+
         // Verify current password
         const isPasswordValid = await bcrypt.compare(
             currentPassword,
@@ -1804,6 +2358,7 @@ router.put('/change-password', authMiddleware, async (req, res) => {
     }
 });
 
+
 // ==========================================
 // ADMIN - GET PROFILE
 // ==========================================
@@ -1826,6 +2381,13 @@ router.get('/admin/profile', authMiddleware, async (req, res) => {
             });
         }
 
+        // Prevent changes to the registered phone number
+if (cleanPhone !== admin.phone) {
+    return res.status(403).json({
+        message: 'The registered phone number cannot be changed.'
+    });
+}
+
         return res.status(200).json({
             admin
         });
@@ -1845,7 +2407,6 @@ router.get('/admin/profile', authMiddleware, async (req, res) => {
 
 router.put('/admin/profile', authMiddleware, async (req, res) => {
     try {
-        // Admin-only access
         if (req.user.role !== 'admin') {
             return res.status(403).json({
                 message: 'Access denied. Admins only.'
@@ -1863,7 +2424,6 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
             gender
         } = req.body || {};
 
-        // Validate required fields
         if (
             typeof firstName !== 'string' ||
             typeof lastName !== 'string' ||
@@ -1894,6 +2454,13 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
                 ? alternativePhone.trim()
                 : '';
 
+        // Primary admin email cannot be changed
+        if (cleanEmail !== 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'The authorized admin email address cannot be changed.'
+            });
+        }
+
         // Validate names
         const nameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
 
@@ -1908,12 +2475,6 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
 
         // Validate emails
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailRegex.test(cleanEmail)) {
-            return res.status(400).json({
-                message: 'Please enter a valid email address.'
-            });
-        }
 
         if (
             cleanAlternativeEmail &&
@@ -1930,13 +2491,14 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
             });
         }
 
-        // Validate phone numbers
+        // Validate editable primary phone
         if (!/^\d{10}$/.test(cleanPhone)) {
             return res.status(400).json({
                 message: 'Phone number must contain exactly 10 digits.'
             });
         }
 
+        // Validate alternative phone
         if (
             cleanAlternativePhone &&
             !/^\d{10}$/.test(cleanAlternativePhone)
@@ -1946,7 +2508,10 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
             });
         }
 
-        if (cleanAlternativePhone === cleanPhone) {
+        if (
+            cleanAlternativePhone &&
+            cleanAlternativePhone === cleanPhone
+        ) {
             return res.status(400).json({
                 message: 'Alternative phone must be different from primary phone.'
             });
@@ -1996,28 +2561,39 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
             });
         }
 
-        // Check whether email belongs to another user
-        const existingEmail = await User.findOne({
-            email: cleanEmail,
-            _id: { $ne: admin._id }
-        });
-
-        if (existingEmail) {
-            return res.status(409).json({
-                message: 'This email address is already registered.'
+        // Verify authorized admin account
+        if (admin.email !== 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'Admin account email verification failed.'
             });
+        }
+
+        // Check alternative email against registered primary emails
+        if (cleanAlternativeEmail) {
+            const existingEmail = await User.findOne({
+                email: cleanAlternativeEmail,
+                _id: { $ne: admin._id }
+            });
+
+            if (existingEmail) {
+                return res.status(409).json({
+                    message: 'This alternative email address is already registered.'
+                });
+            }
         }
 
         // Update admin details
         admin.firstName = cleanFirstName;
         admin.lastName = cleanLastName;
-
-        // Keep existing name field synchronized
         admin.name = `${cleanFirstName} ${cleanLastName}`;
 
-        admin.email = cleanEmail;
-        admin.alternativeEmail = cleanAlternativeEmail;
+        // Keep primary email permanently locked
+        admin.email = 'gasconnect4@gmail.com';
+
+        // Phone number is now editable
         admin.phone = cleanPhone;
+
+        admin.alternativeEmail = cleanAlternativeEmail;
         admin.alternativePhone = cleanAlternativePhone;
         admin.dateOfBirth = parsedDateOfBirth;
         admin.gender = selectedGender;
@@ -2026,7 +2602,6 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
 
         return res.status(200).json({
             message: 'Admin profile updated successfully!',
-
             admin: {
                 id: admin._id,
                 name: admin.name,
@@ -2053,40 +2628,6 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
 
         return res.status(500).json({
             message: 'Unable to update admin profile.'
-        });
-    }
-});
-
-// ==========================================
-// CUSTOMER SAVED ADDRESS APIs
-// ==========================================
-
-// Get all saved addresses
-router.get('/customer/addresses', authMiddleware, async (req, res) => {
-    try {
-        if (req.user.role !== 'customer') {
-            return res.status(403).json({
-                message: 'Access denied. Customers only.'
-            });
-        }
-
-        const user = await User.findById(req.user.id).select('savedAddresses');
-
-        if (!user) {
-            return res.status(404).json({
-                message: 'Customer not found'
-            });
-        }
-
-        res.status(200).json({
-            message: 'Addresses fetched successfully',
-            addresses: user.savedAddresses
-        });
-
-    } catch (error) {
-        console.error('Get addresses error:', error.message);
-        res.status(500).json({
-            message: 'Failed to fetch addresses'
         });
     }
 });

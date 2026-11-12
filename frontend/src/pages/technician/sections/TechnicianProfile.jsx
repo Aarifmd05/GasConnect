@@ -17,6 +17,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import './TechnicianProfile.css';
+const API_URL = 'http://localhost:3006/api';
 
 const defaultNotifications = {
   bookingNotifications: true,
@@ -29,13 +30,22 @@ function TechnicianProfile() {
   const [editMode, setEditMode] = useState(false);
   const [message, setMessage] = useState('');
   const [notifications, setNotifications] = useState(defaultNotifications);
+  const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    specialization: ''
-  });
+  name: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  alternativeEmail: '',
+  alternativePhone: '',
+  dateOfBirth: '',
+  gender: 'Prefer not to say',
+  specialization: '',
+  experience: '',
+  profilePhoto: ''
+});
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -43,18 +53,12 @@ function TechnicianProfile() {
     confirmPassword: ''
   });
 
-  useEffect(() => {
+useEffect(() => {
+  const loadTechnicianProfile = async () => {
     try {
       const storedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
       setUser(storedUser);
-
-      setFormData({
-        name: storedUser.name || '',
-        email: storedUser.email || '',
-        phone: storedUser.phone || '',
-        specialization: storedUser.specialization || ''
-      });
 
       const savedNotifications = JSON.parse(
         localStorage.getItem('technicianNotifications') || 'null'
@@ -66,10 +70,60 @@ function TechnicianProfile() {
           ...savedNotifications
         });
       }
+
+      const token = sessionStorage.getItem('token');
+
+      if (!token) {
+        setMessage('Please log in again to access your profile.');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/users/technician/profile`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch technician profile.');
+      }
+
+      const technician = data.technician || data.user;
+
+      if (technician) {
+        setUser(technician);
+
+        setFormData({
+          name: technician.name || '',
+          firstName: technician.firstName || '',
+          lastName: technician.lastName || '',
+          email: technician.email || '',
+          phone: technician.phone || '',
+          alternativeEmail: technician.alternativeEmail || '',
+          alternativePhone: technician.alternativePhone || '',
+          dateOfBirth: technician.dateOfBirth
+            ? new Date(technician.dateOfBirth).toISOString().split('T')[0]
+            : '',
+          gender: technician.gender || 'Prefer not to say',
+          specialization: technician.specialization || '',
+          experience: technician.experience ?? '',
+          profilePhoto: technician.profilePhoto || ''
+        });
+
+        sessionStorage.setItem('user', JSON.stringify(technician));
+      }
+
     } catch (error) {
       console.error('Unable to load technician profile:', error);
+      setMessage(error.message || 'Unable to load technician profile.');
     }
-  }, []);
+  };
+
+  loadTechnicianProfile();
+}, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -80,20 +134,77 @@ function TechnicianProfile() {
     }));
   };
 
-  const handleSaveProfile = () => {
-    const updatedUser = {
-      ...user,
-      ...formData
-    };
+  const handleSaveProfile = async () => {
+  try {
+    setSaving(true);
+    setMessage('');
 
-    sessionStorage.setItem('user', JSON.stringify(updatedUser));
+    const token = sessionStorage.getItem('token');
+
+    if (!token) {
+      throw new Error('Please log in again to update your profile.');
+    }
+
+    const response = await fetch(`${API_URL}/users/technician/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: user.email,
+        phone: formData.phone,
+        alternativeEmail: formData.alternativeEmail,
+        alternativePhone: formData.alternativePhone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        specialization: formData.specialization,
+        experience: formData.experience,
+        profilePhoto: formData.profilePhoto
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Unable to update technician profile.');
+    }
+
+    const updatedUser = data.technician || data.user;
 
     setUser(updatedUser);
-    setEditMode(false);
-    setMessage('Profile updated in this session.');
+    sessionStorage.setItem('user', JSON.stringify(updatedUser));
 
-    setTimeout(() => setMessage(''), 3000);
-  };
+    setFormData({
+  name: user.name || '',
+  firstName: user.firstName || '',
+  lastName: user.lastName || '',
+  email: user.email || '',
+  phone: user.phone || '',
+  alternativeEmail: user.alternativeEmail || '',
+  alternativePhone: user.alternativePhone || '',
+  dateOfBirth: user.dateOfBirth
+    ? new Date(user.dateOfBirth).toISOString().split('T')[0]
+    : '',
+  gender: user.gender || 'Prefer not to say',
+  specialization: user.specialization || '',
+  experience: user.experience ?? '',
+  profilePhoto: user.profilePhoto || ''
+});
+setEditMode(false);
+setMessage('');
+    setMessage('Profile updated successfully!');
+
+  } catch (error) {
+    console.error('Technician profile update error:', error);
+    setMessage(error.message || 'Unable to update technician profile.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleNotificationChange = (name) => {
     const updated = {
@@ -226,102 +337,212 @@ function TechnicianProfile() {
 
         </div>
 
-        <div className="technician-profile-grid">
+        
+<div className="technician-profile-grid">
 
-          <div className="technician-info-item">
-            <span><User size={14} /> First Name</span>
-            {editMode ? (
-              <input
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter full name"
-              />
-            ) : (
-              <strong>{user.name || 'Not available'}</strong>
-            )}
-          </div>
+  {/* Full Name */}
+  <div className="technician-info-item">
+    <span><User size={14} /> Full Name</span>
+    {editMode ? (
+      <input
+        name="name"
+        value={formData.name}
+        onChange={handleInputChange}
+        placeholder="Enter full name"
+      />
+    ) : (
+      <strong>{user.name || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><BriefcaseBusiness size={14} /> Specialization</span>
-            {editMode ? (
-              <input
-                name="specialization"
-                value={formData.specialization}
-                onChange={handleInputChange}
-                placeholder="Enter specialization"
-              />
-            ) : (
-              <strong>{user.specialization || 'Not specified'}</strong>
-            )}
-          </div>
+  {/* First Name */}
+  <div className="technician-info-item">
+    <span><User size={14} /> First Name</span>
+    {editMode ? (
+      <input
+        name="firstName"
+        value={formData.firstName}
+        onChange={handleInputChange}
+        placeholder="Enter first name"
+      />
+    ) : (
+      <strong>{user.firstName || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><Mail size={14} /> Email Address</span>
-            {editMode ? (
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter email"
-              />
-            ) : (
-              <strong>{user.email || 'Not available'}</strong>
-            )}
-          </div>
+  {/* Last Name */}
+  <div className="technician-info-item">
+    <span><User size={14} /> Last Name</span>
+    {editMode ? (
+      <input
+        name="lastName"
+        value={formData.lastName}
+        onChange={handleInputChange}
+        placeholder="Enter last name"
+      />
+    ) : (
+      <strong>{user.lastName || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><Mail size={14} /> Alternative Email</span>
-            <strong>{user.alternativeEmail || 'Not available'}</strong>
-          </div>
+  {/* Registered Email - Locked */}
+  <div className="technician-info-item">
+    <span><Mail size={14} /> Registered Email</span>
+    {editMode ? (
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        readOnly
+      />
+    ) : (
+      <strong>{user.email || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><Phone size={14} /> Phone Number</span>
-            {editMode ? (
-              <input
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="Enter phone number"
-              />
-            ) : (
-              <strong>{user.phone || 'Not available'}</strong>
-            )}
-          </div>
+  {/* Phone */}
+  <div className="technician-info-item">
+    <span><Phone size={14} /> Phone Number</span>
+    {editMode ? (
+      <input
+        name="phone"
+        value={formData.phone}
+        onChange={handleInputChange}
+        placeholder="Enter phone number"
+        maxLength={10}
+      />
+    ) : (
+      <strong>{user.phone || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><Phone size={14} /> Alternate Phone Number</span>
-            <strong>{user.alternatePhone || 'Not available'}</strong>
-          </div>
+  {/* Alternative Email */}
+  <div className="technician-info-item">
+    <span><Mail size={14} /> Alternative Email</span>
+    {editMode ? (
+      <input
+        type="email"
+        name="alternativeEmail"
+        value={formData.alternativeEmail}
+        onChange={handleInputChange}
+        placeholder="Enter alternative email"
+      />
+    ) : (
+      <strong>{user.alternativeEmail || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><CalendarDays size={14} /> Date of Birth</span>
-            <strong>
-              {user.dateOfBirth
-                ? new Date(user.dateOfBirth).toLocaleDateString()
-                : 'Not available'}
-            </strong>
-          </div>
+  {/* Alternative Phone */}
+  <div className="technician-info-item">
+    <span><Phone size={14} /> Alternate Phone Number</span>
+    {editMode ? (
+      <input
+        name="alternativePhone"
+        value={formData.alternativePhone}
+        onChange={handleInputChange}
+        placeholder="Enter alternate phone"
+        maxLength={10}
+      />
+    ) : (
+      <strong>{user.alternativePhone || 'Not available'}</strong>
+    )}
+  </div>
 
-          <div className="technician-info-item">
-            <span><CheckCircle2 size={14} /> Approval Status</span>
-            <strong className="technician-approval-status">
-              {approvalStatus}
-            </strong>
-          </div>
+  {/* Date of Birth */}
+  <div className="technician-info-item">
+    <span><CalendarDays size={14} /> Date of Birth</span>
+    {editMode ? (
+      <input
+        type="date"
+        name="dateOfBirth"
+        value={formData.dateOfBirth}
+        onChange={handleInputChange}
+      />
+    ) : (
+      <strong>
+        {user.dateOfBirth
+          ? new Date(user.dateOfBirth).toLocaleDateString()
+          : 'Not available'}
+      </strong>
+    )}
+  </div>
 
-        </div>
+  {/* Gender */}
+  <div className="technician-info-item">
+    <span><User size={14} /> Gender</span>
+    {editMode ? (
+      <select
+        name="gender"
+        value={formData.gender}
+        onChange={handleInputChange}
+      >
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
+    ) : (
+      <strong>{user.gender || 'Not specified'}</strong>
+    )}
+  </div>
+
+  {/* Specialization */}
+  <div className="technician-info-item">
+    <span><BriefcaseBusiness size={14} /> Specialization</span>
+    {editMode ? (
+      <input
+        name="specialization"
+        value={formData.specialization}
+        onChange={handleInputChange}
+        placeholder="Enter specialization"
+      />
+    ) : (
+      <strong>{user.specialization || 'Not specified'}</strong>
+    )}
+  </div>
+
+  {/* Experience */}
+  <div className="technician-info-item">
+    <span><BriefcaseBusiness size={14} /> Experience (Years)</span>
+    {editMode ? (
+      <input
+        type="number"
+        name="experience"
+        value={formData.experience}
+        onChange={handleInputChange}
+        placeholder="Enter experience"
+        min="0"
+        max="60"
+      />
+    ) : (
+      <strong>
+        {user.experience ?? 'Not specified'}
+        {user.experience !== null && user.experience !== undefined ? ' years' : ''}
+      </strong>
+    )}
+  </div>
+
+  {/* Approval Status - Admin Controlled */}
+  <div className="technician-info-item">
+    <span><CheckCircle2 size={14} /> Approval Status</span>
+    <strong className="technician-approval-status">
+      {approvalStatus}
+    </strong>
+  </div>
+
+</div>
+
 
         {editMode && (
           <div className="technician-profile-actions">
             <button
-              className="technician-save-button"
-              onClick={handleSaveProfile}
-            >
-              <Save size={16} />
-              Save Changes
-            </button>
+  className="technician-save-button"
+  onClick={handleSaveProfile}
+  disabled={saving}
+>
+  <Save size={16} />
+  {saving ? 'Saving...' : 'Save Changes'}
+</button>
           </div>
         )}
 

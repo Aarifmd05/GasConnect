@@ -412,3 +412,32 @@
     line-height: 1.5;
   }
 }
+
+.technician-info-item select {
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #dce4ee;
+  border-radius: 5px;
+  padding: 8px 9px;
+  color: #17365d;
+  font-size: 11px;
+  outline: none;
+}
+
+.technician-info-item select:focus {
+  border-color: #0754a0;
+  box-shadow: 0 0 0 2px rgba(7, 84, 160, 0.08);
+}
+
+.technician-info-item input:read-only {
+  background: #f1f4f8;
+  color: #8492a8;
+  cursor: not-allowed;
+  border-color: #e1e7ef;
+}
+
+.technician-save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

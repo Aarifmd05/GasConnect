@@ -51,7 +51,7 @@ export default function MyProfile() {
     });
 
     try {
-      const response = await fetch(`${API_URL}/users/profile`, {
+      const response = await fetch(`${API_URL}/users/customer/profile`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -109,7 +109,7 @@ export default function MyProfile() {
       setError('');
       setSuccess('');
 
-      const response = await fetch(`${API_URL}/users/profile`, {
+      const response = await fetch(`${API_URL}/users/customer/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -248,6 +248,7 @@ export default function MyProfile() {
                   value={form.email}
                   onChange={handleChange}
                   required
+                  readOnly
                 />
               </div>
             </div>
