@@ -8,7 +8,8 @@ import {
   LoaderCircle,
   CheckCircle,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  User
 } from 'lucide-react';
 
 import './MyProfile.css';
@@ -51,11 +52,14 @@ export default function MyProfile() {
     });
 
     try {
-      const response = await fetch(`${API_URL}/users/customer/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await fetch(
+        `${API_URL}/users/customer/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -68,10 +72,12 @@ export default function MyProfile() {
         });
 
         sessionStorage.setItem('user', JSON.stringify(user));
+
       } else if (response.status !== 404) {
         const data = await response.json();
         throw new Error(data.message || 'Unable to load profile');
       }
+
     } catch (err) {
       setError(err.message || 'Unable to load profile information.');
     } finally {
@@ -79,7 +85,7 @@ export default function MyProfile() {
     }
   };
 
-  const handleChange = event => {
+  const handleChange = (event) => {
     const { name, value } = event.target;
 
     setForm(previous => ({
@@ -91,7 +97,7 @@ export default function MyProfile() {
     setError('');
   };
 
-  const handleSubmit = async event => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!form.name.trim()) {
@@ -109,18 +115,21 @@ export default function MyProfile() {
       setError('');
       setSuccess('');
 
-      const response = await fetch(`${API_URL}/users/customer/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim()
-        })
-      });
+      const response = await fetch(
+        `${API_URL}/users/customer/profile`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: form.name.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim()
+          })
+        }
+      );
 
       const data = await response.json();
 
@@ -135,7 +144,10 @@ export default function MyProfile() {
         ...form
       };
 
-      sessionStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem(
+        'user',
+        JSON.stringify(updatedUser)
+      );
 
       setForm({
         name: updatedUser.name || form.name,
@@ -144,6 +156,7 @@ export default function MyProfile() {
       });
 
       setSuccess('Your profile has been updated successfully!');
+
     } catch (err) {
       setError(err.message || 'Something went wrong while saving.');
     } finally {
@@ -166,63 +179,109 @@ export default function MyProfile() {
 
   return (
     <div className="customer-profile-page">
-      <div className="profile-heading">
-        <div>
-          <span className="profile-eyebrow">ACCOUNT SETTINGS</span>
-          <h2>My Profile</h2>
-          <p>Manage your personal information and contact details.</p>
-        </div>
 
-        <div className="profile-heading-icon">
-          <UserRound size={27} />
-        </div>
-      </div>
+      {/* PROFILE CARD */}
 
       <div className="profile-main-card">
-        <div className="profile-cover" />
 
-        <div className="profile-user-summary">
-          <div className="profile-avatar">{initials}</div>
+        {/* BLUE COVER */}
 
-          <div className="profile-user-info">
-            <h3>{form.name || 'Customer'}</h3>
-            <p>{form.email || 'No email provided'}</p>
+        <div className="profile-cover">
+          <div className="profile-cover-content">
+            <span>GASCONNECT</span>
+            <h2>Your Account, Your Control</h2>
+            <p>Manage your personal details in one place.</p>
           </div>
 
-          <span className="profile-customer-badge">
-            <ShieldCheck size={15} />
-            Customer Account
-          </span>
+          <div className="profile-cover-decoration">
+            <UserRound size={105} />
+          </div>
+        </div>
+
+        {/* CUSTOMER DETAILS */}
+
+        <div className="profile-user-summary">
+
+          <div className="profile-avatar">
+            {initials}
+          </div>
+
+          <div className="profile-user-info">
+            <span className="profile-user-label">
+              CUSTOMER PROFILE
+            </span>
+
+            <h3>{form.name || 'Customer'}</h3>
+
+            <p>
+              <Mail size={15} />
+              {form.email || 'No email provided'}
+            </p>
+          </div>
+
+          <div className="profile-customer-badge">
+            <ShieldCheck size={17} />
+            <span>
+              Customer Account
+            </span>
+          </div>
+
         </div>
 
         <div className="profile-divider" />
 
-        <form className="profile-form" onSubmit={handleSubmit}>
+        {/* PERSONAL INFORMATION */}
+
+        <form
+          className="profile-form"
+          onSubmit={handleSubmit}
+        >
+
           <div className="profile-form-heading">
-            <h3>Personal Information</h3>
-            <p>Update the information associated with your account.</p>
+            <div className="profile-section-icon">
+              <User size={21} />
+            </div>
+
+            <div>
+              <h3>Personal Information</h3>
+              <p>
+                Manage your personal information and contact details.
+              </p>
+            </div>
           </div>
+
+          {/* ERROR MESSAGE */}
 
           {error && (
             <div className="profile-message profile-error">
-              <AlertCircle size={17} />
+              <AlertCircle size={18} />
               {error}
             </div>
           )}
 
+          {/* SUCCESS MESSAGE */}
+
           {success && (
             <div className="profile-message profile-success">
-              <CheckCircle size={17} />
+              <CheckCircle size={18} />
               {success}
             </div>
           )}
 
+          {/* FORM FIELDS */}
+
           <div className="profile-fields">
+
+            {/* FULL NAME */}
+
             <div className="profile-field">
-              <label htmlFor="profile-name">Full Name</label>
+              <label htmlFor="profile-name">
+                Full Name
+              </label>
 
               <div className="profile-input-wrapper">
-                <UserRound size={18} />
+                <UserRound size={19} />
+
                 <input
                   id="profile-name"
                   name="name"
@@ -235,11 +294,16 @@ export default function MyProfile() {
               </div>
             </div>
 
+            {/* EMAIL */}
+
             <div className="profile-field">
-              <label htmlFor="profile-email">Email Address</label>
+              <label htmlFor="profile-email">
+                Email Address
+              </label>
 
               <div className="profile-input-wrapper">
-                <Mail size={18} />
+                <Mail size={19} />
+
                 <input
                   id="profile-email"
                   name="email"
@@ -251,13 +315,20 @@ export default function MyProfile() {
                   readOnly
                 />
               </div>
+
+              <small>Email address cannot be edited here.</small>
             </div>
 
+            {/* PHONE */}
+
             <div className="profile-field">
-              <label htmlFor="profile-phone">Phone Number</label>
+              <label htmlFor="profile-phone">
+                Phone Number
+              </label>
 
               <div className="profile-input-wrapper">
-                <Phone size={18} />
+                <Phone size={19} />
+
                 <input
                   id="profile-phone"
                   name="phone"
@@ -268,10 +339,20 @@ export default function MyProfile() {
                 />
               </div>
             </div>
+
           </div>
 
+          {/* FOOTER */}
+
           <div className="profile-form-footer">
-            <p>Your information is used to manage your GasConnect services.</p>
+
+            <div className="profile-footer-info">
+              <ShieldCheck size={19} />
+              <p>
+                Your information is used to manage your
+                GasConnect services securely.
+              </p>
+            </div>
 
             <button
               type="submit"
@@ -280,18 +361,24 @@ export default function MyProfile() {
             >
               {saving ? (
                 <>
-                  <LoaderCircle size={17} className="profile-spinner" />
+                  <LoaderCircle
+                    size={18}
+                    className="profile-spinner"
+                  />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save size={17} />
+                  <Save size={18} />
                   Save Changes
                 </>
               )}
             </button>
+
           </div>
+
         </form>
+
       </div>
     </div>
   );

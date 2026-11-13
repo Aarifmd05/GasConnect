@@ -300,7 +300,7 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             <option value="">
               {loadingRepairs
                 ? 'Loading services...'
-                : 'Choose a repair service (optional)'}
+                : 'Choose a repair service'}
             </option>
 
             {!loadingRepairs && repairs.length === 0 && (

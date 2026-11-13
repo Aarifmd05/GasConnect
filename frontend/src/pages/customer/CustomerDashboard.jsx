@@ -1,5 +1,10 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback
+} from 'react';
 
 import CustomerTopbar from './components/CustomerTopbar';
 import CustomerSidebar from './components/CustomerSidebar';
@@ -39,12 +44,87 @@ const getStoredAddress = () => {
 
 const CustomerDashboard = () => {
   const [user] = useState(getStoredUser);
+
   const [activeSection, setActiveSection] = useState('overview');
-  const [selectedAddress, setSelectedAddress] = useState(getStoredAddress);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const [selectedAddress, setSelectedAddress] = useState(
+    getStoredAddress
+  );
+
+  // Detect mobile screen
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= 768
+  );
+
+  // Desktop sidebar state
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+
+  // Mobile drawer state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Actual sidebar state
+  const sidebarOpen = isMobile
+    ? mobileSidebarOpen
+    : desktopSidebarOpen;
+
+  // Handle screen resizing
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+
+      setIsMobile(mobile);
+
+      if (!mobile) {
+        setMobileSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Prevent background scrolling while mobile menu is open
+  useEffect(() => {
+    if (isMobile && mobileSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobile, mobileSidebarOpen]);
+
+  // Toggle sidebar
+  const handleMenuToggle = () => {
+    if (isMobile) {
+      setMobileSidebarOpen(previous => !previous);
+    } else {
+      setDesktopSidebarOpen(previous => !previous);
+    }
+  };
+
+  // Close mobile drawer
+  const closeMobileSidebar = () => {
+    setMobileSidebarOpen(false);
+  };
+
+  // Handle navigation
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+
+    if (isMobile) {
+      setMobileSidebarOpen(false);
+    }
+  };
 
   // Notification states
   const [notifications, setNotifications] = useState([]);
+
   const [readNotifications, setReadNotifications] = useState(() => {
     try {
       return JSON.parse(
@@ -57,7 +137,7 @@ const CustomerDashboard = () => {
 
   const [notificationLoading, setNotificationLoading] = useState(false);
 
-  // Fetch notifications from existing bookings API
+  // Fetch notifications
   const fetchNotifications = useCallback(async () => {
     const token = sessionStorage.getItem('token');
 
@@ -158,13 +238,13 @@ const CustomerDashboard = () => {
   // Calculate unread count
   const unreadCount = useMemo(() => {
     return notifications.filter(
-      (notification) => !readNotifications.includes(notification.id)
+      notification => !readNotifications.includes(notification.id)
     ).length;
   }, [notifications, readNotifications]);
 
   // Mark one notification as read
   const markAsRead = (id) => {
-    setReadNotifications((previous) => {
+    setReadNotifications(previous => {
       const updated = previous.includes(id)
         ? previous
         : [...previous, id];
@@ -180,9 +260,9 @@ const CustomerDashboard = () => {
 
   // Mark all notifications as read
   const markAllAsRead = () => {
-    const allIds = notifications.map((notification) => notification.id);
+    const allIds = notifications.map(notification => notification.id);
 
-    setReadNotifications((previous) => {
+    setReadNotifications(previous => {
       const updated = [...new Set([...previous, ...allIds])];
 
       sessionStorage.setItem(
@@ -194,18 +274,26 @@ const CustomerDashboard = () => {
     });
   };
 
+  // Address selection
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
-    sessionStorage.setItem('selectedAddress', JSON.stringify(address));
+
+    sessionStorage.setItem(
+      'selectedAddress',
+      JSON.stringify(address)
+    );
   };
 
+  // Logout
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('selectedAddress');
+
     window.location.href = '/customer/login';
   };
 
+  // Page titles
   const sectionTitles = {
     overview: 'Dashboard Overview',
     products: 'Products',
@@ -224,33 +312,62 @@ const CustomerDashboard = () => {
   return (
     <div className="customer-dashboard">
 
+      {/* SIDEBAR */}
+
       <CustomerSidebar
         activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        onSectionChange={handleSectionChange}
         sidebarOpen={sidebarOpen}
         onLogout={handleLogout}
       />
 
-      <main className={`customer-main ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
+      {/* MOBILE OVERLAY */}
+
+      {isMobile && (
+        <div
+          className={`customer-sidebar-overlay ${
+            mobileSidebarOpen ? 'show' : ''
+          }`}
+          onClick={closeMobileSidebar}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* MAIN CONTENT */}
+
+      <main
+        className={`customer-main ${
+          !isMobile && !desktopSidebarOpen
+            ? 'sidebar-collapsed'
+            : ''
+        }`}
+      >
+
+        {/* TOPBAR */}
 
         <CustomerTopbar
-  user={user}
-  selectedAddress={selectedAddress}
-  onAddressSelect={handleAddressSelect}
-  onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-  onLogout={handleLogout}
-  notifications={notifications}
-  readNotifications={readNotifications}
-  unreadCount={unreadCount}
-  markAsRead={markAsRead}
-  onOpenNotifications={() => setActiveSection('notifications')}
-/>
+          user={user}
+          selectedAddress={selectedAddress}
+          onAddressSelect={handleAddressSelect}
+          onMenuToggle={handleMenuToggle}
+          onLogout={handleLogout}
+          notifications={notifications}
+          readNotifications={readNotifications}
+          unreadCount={unreadCount}
+          markAsRead={markAsRead}
+          onOpenNotifications={() => {
+            handleSectionChange('notifications');
+          }}
+        />
+
+        {/* PAGE CONTENT */}
 
         <div className="customer-content">
 
           <div className="customer-page-heading">
             <div>
               <h1>{sectionTitles[activeSection]}</h1>
+
               <p>
                 Welcome back, {user?.name || 'Customer'}!
                 Manage your gas appliance services here.
@@ -261,13 +378,13 @@ const CustomerDashboard = () => {
           {activeSection === 'overview' && (
             <Overview
               user={user}
-              onBookRepair={() => setActiveSection('bookRepair')}
+              onBookRepair={() => handleSectionChange('bookRepair')}
             />
           )}
 
           {activeSection === 'products' && (
             <Products
-              onCheckout={() => setActiveSection('checkout')}
+              onCheckout={() => handleSectionChange('checkout')}
             />
           )}
 
@@ -275,8 +392,8 @@ const CustomerDashboard = () => {
             <Checkout
               selectedAddress={selectedAddress}
               onAddressSelect={handleAddressSelect}
-              onBackToProducts={() => setActiveSection('products')}
-              onOrderPlaced={() => setActiveSection('myOrders')}
+              onBackToProducts={() => handleSectionChange('products')}
+              onOrderPlaced={() => handleSectionChange('myOrders')}
             />
           )}
 

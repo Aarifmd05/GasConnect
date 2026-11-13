@@ -24,13 +24,14 @@ import {
     Pencil,
     Trash2,
     ShoppingBag,
-    Save
+    Save,
+    X
 } from 'lucide-react';
 
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo.png';
 import './AdminDashboard.css';
+import AdminSidebar from './components/AdminSidebar';
 
 // Section components
 import DashboardSection from './sections/DashboardSection';
@@ -1374,18 +1375,6 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
     // SIDEBAR MENU AND DASHBOARD DATA
     // ==========================================
 
-    const menuItems = [
-        { name: 'Dashboard', icon: LayoutDashboard },
-        { name: 'Customers', icon: Users },
-        { name: 'Technicians', icon: HardHat },
-        { name: 'Bookings', icon: CalendarCheck },
-        { name: 'Repair Types', icon: Wrench },
-        { name: 'Service Categories', icon: Layers },
-        { name: 'Products & Inventory', icon: Package },
-        { name: 'Orders', icon: ShoppingBag },    
-        { name: 'Reviews', icon: Star },
-        { name: 'Settings', icon: Settings }
-    ];
 
     const dashboardCards = [
         {
@@ -1429,47 +1418,26 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
     };
 
     return (
-        <div className="admin-dashboard">
+    <div className="admin-dashboard">
 
-            {/* Sidebar */}
-            <aside className={`admin-sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
-                <div className="admin-sidebar-logo">
-                    <img src={logo} alt="GasConnect Logo" />
-                </div>
-
-                <div className="admin-sidebar-heading">ADMIN MENU</div>
-
-                <nav className="admin-navigation">
-                    {menuItems.map((item) => {
-                        const Icon = item.icon;
-
-                        return (
-                            <button
-                                key={item.name}
-                                className={`admin-nav-item ${activeMenu === item.name ? 'active' : ''}`}
-                                onClick={() => handleMenuClick(item.name)}
-                            >
-                                <Icon size={20} />
-                                <span>{item.name}</span>
-                            </button>
-                        );
-                    })}
-                </nav>
-
-                <button className="admin-logout" onClick={handleLogout}>
-                    <LogOut size={20} />
-                    <span>Logout</span>
-                </button>
-            </aside>
-
-            {/* Main Section */}
+        {/* Admin Sidebar */}
+        <AdminSidebar
+            activeMenu={activeMenu}
+            onMenuClick={handleMenuClick}
+            sidebarOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            onLogout={handleLogout}
+        />
+{/* Main Section */}
             <main className="admin-main">
 
                 {/* Topbar */}
                 <header className="admin-topbar">
                     <button
                         className="admin-menu-toggle"
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        onClick={() => setSidebarOpen((prev) => !prev)}
+                        aria-label="Toggle sidebar"
+                        aria-expanded={sidebarOpen}
                     >
                         <Menu size={25} />
                     </button>

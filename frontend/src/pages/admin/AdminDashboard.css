@@ -11,99 +11,6 @@
 }
 
 /* =========================================
-   SIDEBAR
-========================================= */
-
-.admin-sidebar {
-    width: 265px;
-    min-height: 100vh;
-    background: #062C63;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 14px;
-    flex-shrink: 0;
-}
-
-.admin-sidebar-logo {
-    height: 92px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #FFFFFF;
-    border-radius: 15px;
-    margin-bottom: 30px;
-    overflow: hidden;
-}
-
-.admin-sidebar-logo img {
-    width: 90%;
-    height: 90%;
-    object-fit: contain;
-}
-
-.admin-sidebar-heading {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    color: #AFC7E8;
-    padding: 0 12px;
-    margin-bottom: 15px;
-}
-
-.admin-navigation {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-
-.admin-nav-item {
-    width: 100%;
-    min-height: 47px;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    padding: 0 13px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    color: #DCE8F8;
-    text-align: left;
-    font-size: 13px;
-    font-weight: 500;
-    transition: 0.2s ease;
-}
-
-.admin-nav-item:hover,
-.admin-nav-item.active {
-    background: #0754A0;
-    color: #FFFFFF;
-}
-
-.admin-nav-item.active {
-    border-left: 4px solid #FFD600;
-}
-
-.admin-logout {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    min-height: 48px;
-    padding: 0 13px;
-    margin-top: auto;
-    border: none;
-    border-radius: 9px;
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
-    font-size: 14px;
-    text-align: left;
-}
-
-.admin-logout:hover {
-    background: #B42318;
-}
-
-/* =========================================
    MAIN CONTENT AND TOPBAR
 ========================================= */
 
@@ -1217,20 +1124,7 @@
 /* Tablets */
 
 @media (max-width: 800px) {
-    .admin-sidebar {
-        position: fixed;
-        z-index: 10;
-        top: 0;
-        bottom: 0;
-        left: -270px;
-        transition: left 0.3s ease;
-    }
-
-    .admin-sidebar.sidebar-open {
-        left: 0;
-    }
-
-    .admin-menu-toggle {
+.admin-menu-toggle {
         display: flex;
     }
 
