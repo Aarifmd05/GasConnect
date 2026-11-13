@@ -1,6 +1,9 @@
 
 import 'dotenv/config';
 
+console.log("Google ID loaded:", !!process.env.GOOGLE_CLIENT_ID);
+console.log("JWT loaded:", !!process.env.JWT_SECRET);
+
 import path from 'path';
 import cors from 'cors';
 import express from 'express';

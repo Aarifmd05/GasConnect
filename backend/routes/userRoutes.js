@@ -2923,6 +2923,44 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
 });
 
 
+// Get all saved addresses of the logged-in customer
+router.get('/customer/addresses', authMiddleware, async (req, res) => {
+    try {
+        // Only customers can access saved addresses
+        if (req.user.role !== 'customer') {
+            return res.status(403).json({
+                message: 'Access denied. Customers only.'
+            });
+        }
+
+        // Find logged-in customer
+        const user = await User.findOne({
+            _id: req.user.id,
+            role: 'customer'
+        }).select('savedAddresses');
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Customer not found'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Addresses fetched successfully',
+            addresses: user.savedAddresses || []
+        });
+
+    } catch (error) {
+        console.error('Fetch customer addresses error:', error.message);
+
+        return res.status(500).json({
+            message: 'Failed to fetch customer addresses'
+        });
+    }
+});
+
+
+
 // Add a new address
 router.post('/customer/addresses', authMiddleware, async (req, res) => {
     try {

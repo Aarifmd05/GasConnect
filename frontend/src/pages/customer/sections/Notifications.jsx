@@ -1,5 +1,6 @@
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
+
 import {
   Bell,
   CheckCircle,
@@ -9,17 +10,14 @@ import {
   XCircle,
   CalendarDays,
   RefreshCw,
-  BellRing,
   Inbox,
   LoaderCircle
 } from 'lucide-react';
 
 import './Notifications.css';
 
-const API_URL = 'http://localhost:3006/api';
-
-const getNotificationDetails = booking => {
-  const status = booking.status?.toLowerCase();
+const getNotificationDetails = (booking) => {
+  const status = booking?.status?.toLowerCase();
 
   switch (status) {
     case 'pending':
@@ -81,109 +79,18 @@ const getNotificationDetails = booking => {
   }
 };
 
-export default function Notifications() {
-  const [bookings, setBookings] = useState([]);
-  const [readNotifications, setReadNotifications] = useState([]);
+export default function Notifications({
+  notifications = [],
+  readNotifications = [],
+  unreadCount = 0,
+  markAsRead,
+  markAllAsRead,
+  fetchNotifications,
+  loading = false
+}) {
   const [filter, setFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  const token = sessionStorage.getItem('token');
-
-  useEffect(() => {
-    fetchNotifications();
-
-    const saved = sessionStorage.getItem('gasconnect_read_notifications');
-
-    if (saved) {
-      try {
-        setReadNotifications(JSON.parse(saved));
-      } catch {
-        setReadNotifications([]);
-      }
-    }
-  }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const response = await fetch(`${API_URL}/bookings/my-bookings`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Unable to load notifications');
-      }
-
-      const bookingList = Array.isArray(data)
-        ? data
-        : data.bookings || [];
-
-      setBookings(bookingList);
-    } catch (err) {
-      setError(err.message || 'Unable to load notifications.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const notifications = useMemo(() => {
-    return bookings
-      .map(booking => {
-        const details = getNotificationDetails(booking);
-
-        return {
-          id: `${booking._id}-${booking.status}`,
-          bookingId: booking._id,
-          booking,
-          ...details,
-          date: booking.updatedAt || booking.createdAt || booking.bookingDate
-        };
-      })
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [bookings]);
-
-  const unreadCount = notifications.filter(
-    notification => !readNotifications.includes(notification.id)
-  ).length;
-
-  const markAsRead = id => {
-    setReadNotifications(previous => {
-      const updated = previous.includes(id)
-        ? previous
-        : [...previous, id];
-
-      sessionStorage.setItem(
-        'gasconnect_read_notifications',
-        JSON.stringify(updated)
-      );
-
-      return updated;
-    });
-  };
-
-  const markAllAsRead = () => {
-    const allIds = notifications.map(notification => notification.id);
-
-    setReadNotifications(previous => {
-      const updated = [...new Set([...previous, ...allIds])];
-
-      sessionStorage.setItem(
-        'gasconnect_read_notifications',
-        JSON.stringify(updated)
-      );
-
-      return updated;
-    });
-  };
-
-  const visibleNotifications = notifications.filter(notification => {
+  const visibleNotifications = notifications.filter((notification) => {
     const isRead = readNotifications.includes(notification.id);
 
     if (filter === 'unread') return !isRead;
@@ -191,6 +98,10 @@ export default function Notifications() {
 
     return true;
   });
+
+  const handleRefresh = () => {
+    fetchNotifications?.();
+  };
 
   if (loading) {
     return (
@@ -203,53 +114,51 @@ export default function Notifications() {
 
   return (
     <div className="notifications-page">
+
+      {/* PAGE HEADING - LARGE BELL REMOVED */}
       <div className="notifications-heading">
         <div>
           <span className="notifications-eyebrow">STAY UPDATED</span>
           <h2>Notifications</h2>
-          <p>Keep track of your repair bookings and service updates.</p>
-        </div>
-
-        <div className="notifications-heading-icon">
-          <BellRing size={27} />
-          {unreadCount > 0 && (
-            <span className="notifications-count">{unreadCount}</span>
-          )}
+          <p>
+            Keep track of your repair bookings and service updates.
+          </p>
         </div>
       </div>
 
+      {/* NOTIFICATION SUMMARY */}
       <div className="notifications-summary">
+
         <div className="notifications-summary-icon">
           <Bell size={22} />
         </div>
 
         <div>
           <h3>{unreadCount} Unread Notifications</h3>
-          <p>You have {notifications.length} booking updates in total.</p>
+          <p>
+            You have {notifications.length} booking updates in total.
+          </p>
         </div>
 
         <button
           className="notifications-refresh"
-          onClick={fetchNotifications}
+          onClick={handleRefresh}
           title="Refresh notifications"
         >
           <RefreshCw size={17} />
         </button>
+
       </div>
 
-      {error && (
-        <div className="notifications-error">
-          {error}
-        </div>
-      )}
-
+      {/* FILTERS */}
       <div className="notifications-toolbar">
+
         <div className="notifications-tabs">
           {[
             { id: 'all', label: 'All' },
             { id: 'unread', label: 'Unread' },
             { id: 'read', label: 'Read' }
-          ].map(tab => (
+          ].map((tab) => (
             <button
               key={tab.id}
               className={filter === tab.id ? 'active' : ''}
@@ -268,10 +177,14 @@ export default function Notifications() {
           <CheckCircle size={15} />
           Mark all as read
         </button>
+
       </div>
 
+      {/* EMPTY STATE OR NOTIFICATION LIST */}
       {visibleNotifications.length === 0 ? (
+
         <div className="notifications-empty">
+
           <div className="notifications-empty-icon">
             <Inbox size={34} />
           </div>
@@ -287,56 +200,80 @@ export default function Notifications() {
               ? 'Your booking updates will appear here.'
               : 'There are no notifications in this category.'}
           </p>
+
         </div>
+
       ) : (
+
         <div className="notifications-list">
-          {visibleNotifications.map(notification => {
-            const Icon = notification.icon;
+
+          {visibleNotifications.map((notification) => {
+
+            const booking = notification.booking || {};
+            const details = getNotificationDetails(booking);
+
+            const Icon = details.icon;
             const isRead = readNotifications.includes(notification.id);
 
             return (
               <div
                 key={notification.id}
                 className={`notification-card ${isRead ? 'read' : 'unread'}`}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => markAsRead?.(notification.id)}
               >
-                <div className={`notification-icon ${notification.type}`}>
+
+                <div className={`notification-icon ${details.type}`}>
                   <Icon size={21} />
                 </div>
 
                 <div className="notification-content">
+
                   <div className="notification-title-row">
-                    <h3>{notification.title}</h3>
+                    <h3>{details.title}</h3>
 
                     {!isRead && (
                       <span className="notification-unread-dot" />
                     )}
                   </div>
 
-                  <p>{notification.message}</p>
+                  <p>{details.message}</p>
 
                   <div className="notification-meta">
+
                     <span>
                       <CalendarDays size={13} />
+
                       {notification.date
                         ? new Date(notification.date).toLocaleString()
                         : 'Date unavailable'}
                     </span>
 
                     <span>
-                      Booking #{notification.bookingId.slice(-8).toUpperCase()}
+                      Booking #
+                      {(notification.bookingId || booking._id || '')
+                        .toString()
+                        .slice(-8)
+                        .toUpperCase()}
                     </span>
+
                   </div>
+
                 </div>
 
                 {!isRead && (
-                  <span className="notification-new-label">NEW</span>
+                  <span className="notification-new-label">
+                    NEW
+                  </span>
                 )}
+
               </div>
             );
           })}
+
         </div>
+
       )}
+
     </div>
   );
 }
