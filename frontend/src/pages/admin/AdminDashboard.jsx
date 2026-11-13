@@ -11,10 +11,6 @@ import {
     Star,
     Settings,
     LogOut,
-    Menu,
-    Bell,
-    Search,
-    UserCircle,
     Clock,
     CheckCircle,
     AlertCircle,
@@ -32,6 +28,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import AdminSidebar from './components/AdminSidebar';
+import AdminTopbar from './components/AdminTopbar';
 
 // Section components
 import DashboardSection from './sections/DashboardSection';
@@ -1432,58 +1429,13 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
             <main className="admin-main">
 
                 {/* Topbar */}
-                <header className="admin-topbar">
-                    <button
-                        className="admin-menu-toggle"
-                        onClick={() => setSidebarOpen((prev) => !prev)}
-                        aria-label="Toggle sidebar"
-                        aria-expanded={sidebarOpen}
-                    >
-                        <Menu size={25} />
-                    </button>
-
-                    <div className="admin-search">
-                        <Search size={19} />
-
-                       <input
-    type="text"
-    placeholder={
-        activeMenu === 'Customers'
-            ? 'Search customers...'
-            : activeMenu === 'Technicians'
-                ? 'Search technicians...'
-                : activeMenu === 'Bookings'
-                    ? 'Search bookings...'
-                    : activeMenu === 'Repair Types'
-                        ? 'Search repair types...'
-                        : activeMenu === 'Service Categories'
-                            ? 'Search categories...'
-                            : activeMenu === 'Orders'
-                                ? 'Search orders...'
-                                : activeMenu === 'Reviews'
-                                    ? 'Search reviews...'
-                                    : 'Search anything...'
-    }
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-/>
-                    </div>
-
-                    <div className="admin-topbar-right">
-                        <button className="admin-notification">
-                            <Bell size={22} />
-                        </button>
-
-                        <div className="admin-profile">
-                            <UserCircle size={36} />
-
-                            <div>
-                                <h4>Administrator</h4>
-                                <p>Admin</p>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+                <AdminTopbar
+                    activeMenu={activeMenu}
+                    sidebarOpen={sidebarOpen}
+                    onMenuToggle={() => setSidebarOpen((prev) => !prev)}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                />
 
                 {/* Dashboard Content */}
                 <section className="admin-content">
