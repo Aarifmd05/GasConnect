@@ -50,6 +50,21 @@ function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Admin notification states
+const ADMIN_READ_KEY = 'gasconnect_admin_read_notifications';
+
+const [notifications, setNotifications] = useState([]);
+
+const [readNotifications, setReadNotifications] = useState(() => {
+    try {
+        return JSON.parse(
+            sessionStorage.getItem(ADMIN_READ_KEY) || '[]'
+        );
+    } catch {
+        return [];
+    }
+});
+
     // Dashboard statistics
     const [stats, setStats] = useState({
         totalCustomers: 0,
@@ -158,6 +173,164 @@ const fetchOrders = async () => {
         setOrdersLoading(false);
     }
 };
+
+// ==========================================
+// ADMIN NOTIFICATIONS
+// ==========================================
+
+const fetchAdminNotifications = async () => {
+    try {
+        const token = getToken();
+
+        if (!token) return;
+
+        const headers = {
+            Authorization: `Bearer ${token}`
+        };
+
+        const [bookingResponse, technicianResponse] = await Promise.all([
+            axios.get(
+                'http://localhost:3006/api/bookings/admin/all',
+                { headers }
+            ),
+
+            axios.get(
+                'http://localhost:3006/api/users/admin/technicians',
+                { headers }
+            )
+        ]);
+
+        const allBookings = bookingResponse.data.bookings || [];
+        const allTechnicians = technicianResponse.data.technicians || [];
+
+        // Booking notifications
+        const bookingNotifications = allBookings.map((booking) => {
+            const status = booking.status || 'pending';
+
+            let title = 'Booking Status Updated';
+            let message = `Booking for ${
+                booking.customer?.name || 'a customer'
+            } has been updated.`;
+
+            if (status === 'pending') {
+                title = 'New Booking Received';
+                message = `New ${
+                    booking.repairType?.name || 'service'
+                } booking received from ${
+                    booking.customer?.name || 'a customer'
+                }.`;
+            } else if (status === 'assigned') {
+                title = 'Technician Assigned';
+                message = `A technician has been assigned to ${
+                    booking.customer?.name || 'a customer'
+                }'s booking.`;
+            } else if (status === 'accepted') {
+                title = 'Booking Accepted';
+                message = 'A technician has accepted a booking.';
+            } else if (
+                status === 'in-progress' ||
+                status === 'in_progress'
+            ) {
+                title = 'Work In Progress';
+                message = 'A service booking is now in progress.';
+            } else if (status === 'completed') {
+                title = 'Booking Completed';
+                message = 'A service booking has been completed.';
+            } else if (status === 'cancelled') {
+                title = 'Booking Cancelled';
+                message = 'A service booking has been cancelled.';
+            }
+
+            return {
+                id: `booking-${booking._id}-${status}`,
+                title,
+                message,
+                date: booking.updatedAt || booking.createdAt,
+                type: 'booking',
+                bookingId: booking._id
+            };
+        });
+
+        // Pending technician registration notifications
+        const technicianNotifications = allTechnicians
+            .filter(
+                (technician) =>
+                    technician.approvalStatus === 'pending'
+            )
+            .map((technician) => ({
+                id: `technician-${technician._id}-pending`,
+                title: 'Technician Approval Pending',
+                message: `${
+                    technician.name || 'A technician'
+                } is waiting for account approval.`,
+                date: technician.createdAt || technician.updatedAt,
+                type: 'technician',
+                technicianId: technician._id
+            }));
+
+        const combinedNotifications = [
+            ...bookingNotifications,
+            ...technicianNotifications
+        ].sort(
+            (a, b) =>
+                new Date(b.date || 0) - new Date(a.date || 0)
+        );
+
+        setNotifications(combinedNotifications);
+
+    } catch (error) {
+        console.error(
+            'Admin notification error:',
+            error.response?.data || error.message
+        );
+    }
+};
+
+const handleAdminNotificationClick = (notification) => {
+    if (notification.type === 'technician') {
+        setActiveMenu('Technicians');
+    } else if (notification.type === 'booking') {
+        setActiveMenu('Bookings');
+    }
+
+    setSearchTerm('');
+    setSidebarOpen(false);
+};
+
+// Fetch notifications when Admin dashboard opens
+useEffect(() => {
+    fetchAdminNotifications();
+
+    const interval = setInterval(() => {
+        fetchAdminNotifications();
+    }, 30000);
+
+    return () => clearInterval(interval);
+}, []);
+
+// Mark notification as read
+const markAdminNotificationAsRead = (notificationId) => {
+    setReadNotifications((previous) => {
+        if (previous.includes(notificationId)) {
+            return previous;
+        }
+
+        const updated = [...previous, notificationId];
+
+        sessionStorage.setItem(
+            ADMIN_READ_KEY,
+            JSON.stringify(updated)
+        );
+
+        return updated;
+    });
+};
+
+// Calculate unread notification count
+const unreadNotificationCount = notifications.filter(
+    (notification) =>
+        !readNotifications.includes(notification.id)
+).length;
      
      // Update customer order status
 const handleOrderStatusUpdate = async (orderId, orderStatus) => {
@@ -1430,12 +1603,17 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
 
                 {/* Topbar */}
                 <AdminTopbar
-                    activeMenu={activeMenu}
-                    sidebarOpen={sidebarOpen}
-                    onMenuToggle={() => setSidebarOpen((prev) => !prev)}
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                />
+    activeMenu={activeMenu}
+    sidebarOpen={sidebarOpen}
+    onMenuToggle={() => setSidebarOpen((prev) => !prev)}
+    searchTerm={searchTerm}
+    setSearchTerm={setSearchTerm}
+    notifications={notifications}
+    readNotifications={readNotifications}
+    unreadCount={unreadNotificationCount}
+    markAsRead={markAdminNotificationAsRead}
+    onNotificationClick={handleAdminNotificationClick}
+/>
 
                 {/* Dashboard Content */}
                 <section className="admin-content">

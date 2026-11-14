@@ -26,6 +26,27 @@ import MyOrders from './sections/MyOrders';
 
 const API_URL = 'http://localhost:3006/api';
 
+
+// Track the first dashboard login for each customer on this browser.
+// localStorage keeps this value after logout and browser refresh.
+const getIsFirstLogin = (role, user) => {
+  const userId = user?._id || user?.id || user?.email || user?.name;
+  const storageKey = `gasconnect_${role}_has_logged_in_${userId || 'account'}`;
+
+  try {
+    if (localStorage.getItem(storageKey) === 'true') {
+      return false;
+    }
+
+    localStorage.setItem(storageKey, 'true');
+    return true;
+  } catch {
+    // If browser storage is unavailable, show the first-login greeting
+    // for this dashboard session only.
+    return true;
+  }
+};
+
 const getStoredUser = () => {
   try {
     return JSON.parse(sessionStorage.getItem('user')) || {};
@@ -44,6 +65,7 @@ const getStoredAddress = () => {
 
 const CustomerDashboard = () => {
   const [user] = useState(getStoredUser);
+  const [isFirstLogin] = useState(() => getIsFirstLogin('customer', user));
 
   const [activeSection, setActiveSection] = useState('overview');
 
@@ -369,7 +391,7 @@ const CustomerDashboard = () => {
               <h1>{sectionTitles[activeSection]}</h1>
 
               <p>
-                Welcome back, {user?.name || 'Customer'}!
+                {isFirstLogin ? 'Welcome' : 'Welcome back'}, {user?.name || 'Customer'}!
                 Manage your gas appliance services here.
               </p>
             </div>
@@ -378,6 +400,7 @@ const CustomerDashboard = () => {
           {activeSection === 'overview' && (
             <Overview
               user={user}
+              isFirstLogin={isFirstLogin}
               onBookRepair={() => handleSectionChange('bookRepair')}
             />
           )}

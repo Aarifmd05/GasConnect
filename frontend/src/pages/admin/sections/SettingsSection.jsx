@@ -13,7 +13,6 @@ import {
     X,
     Save,
     Settings,
-    Mail,
     Phone,
     CalendarCheck,
     Users,
@@ -57,8 +56,6 @@ function SettingsSection() {
     const [profileForm, setProfileForm] = useState({
         firstName: '',
         lastName: '',
-        email: '',
-        alternativeEmail: '',
         phone: '',
         alternativePhone: '',
         dateOfBirth: '',
@@ -98,8 +95,6 @@ function SettingsSection() {
                 setProfileForm({
                     firstName: data.firstName || data.name?.split(' ')[0] || '',
                     lastName: data.lastName || data.name?.split(' ').slice(1).join(' ') || '',
-                    email: data.email || '',
-                    alternativeEmail: data.alternativeEmail || '',
                     phone: data.phone || '',
                     alternativePhone: data.alternativePhone || '',
                     dateOfBirth: data.dateOfBirth
@@ -163,7 +158,17 @@ function SettingsSection() {
 
             const response = await axios.put(
                 'http://localhost:3006/api/users/admin/profile',
-                profileForm,
+                {
+                    // Keep the registered admin email unchanged for backend validation.
+                    // It is not displayed or editable in the profile form.
+                    email: adminProfile.email,
+                    firstName: profileForm.firstName,
+                    lastName: profileForm.lastName,
+                    phone: profileForm.phone,
+                    alternativePhone: profileForm.alternativePhone,
+                    dateOfBirth: profileForm.dateOfBirth,
+                    gender: profileForm.gender
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -178,8 +183,6 @@ function SettingsSection() {
             setProfileForm({
                 firstName: updatedAdmin.firstName || '',
                 lastName: updatedAdmin.lastName || '',
-                email: updatedAdmin.email || '',
-                alternativeEmail: updatedAdmin.alternativeEmail || '',
                 phone: updatedAdmin.phone || '',
                 alternativePhone: updatedAdmin.alternativePhone || '',
                 dateOfBirth: updatedAdmin.dateOfBirth
@@ -223,8 +226,6 @@ function SettingsSection() {
         setProfileForm({
             firstName: adminProfile.firstName || adminProfile.name?.split(' ')[0] || '',
             lastName: adminProfile.lastName || adminProfile.name?.split(' ').slice(1).join(' ') || '',
-            email: adminProfile.email || '',
-            alternativeEmail: adminProfile.alternativeEmail || '',
             phone: adminProfile.phone || '',
             alternativePhone: adminProfile.alternativePhone || '',
             dateOfBirth: adminProfile.dateOfBirth
@@ -603,31 +604,6 @@ function SettingsSection() {
                             </div>
 
                             <div className="settings-form-group">
-                                <label>Email Address *</label>
-
-                                <input
-    type="email"
-    name="email"
-    value={profileForm.email}
-    readOnly
-    placeholder="Enter email address"
-    required
-/>
-                            </div>
-
-                            <div className="settings-form-group">
-                                <label>Alternative Email</label>
-
-                                <input
-                                    type="email"
-                                    name="alternativeEmail"
-                                    value={profileForm.alternativeEmail}
-                                    onChange={handleProfileChange}
-                                    placeholder="Enter alternative email"
-                                />
-                            </div>
-
-                            <div className="settings-form-group">
                                 <label>Phone Number *</label>
 
                                 <input
@@ -745,26 +721,6 @@ function SettingsSection() {
                                 {adminProfile.lastName ||
                                     adminProfile.name?.split(' ').slice(1).join(' ') ||
                                     'Not available'}
-                            </p>
-                        </div>
-
-                        <div className="settings-info-item">
-                            <label>
-                                <Mail size={16} />
-                                Email Address
-                            </label>
-
-                            <p>{adminProfile.email || 'Not available'}</p>
-                        </div>
-
-                        <div className="settings-info-item">
-                            <label>
-                                <Mail size={16} />
-                                Alternative Email
-                            </label>
-
-                            <p>
-                                {adminProfile.alternativeEmail || 'Not available'}
                             </p>
                         </div>
 

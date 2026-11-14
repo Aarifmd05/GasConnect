@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -16,7 +15,7 @@ import './Overview.css';
 
 const API_URL = 'http://localhost:3006/api';
 
-const Overview = ({ user, onBookRepair }) => {
+const Overview = ({ user, onBookRepair, isFirstLogin = false }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -135,7 +134,7 @@ const Overview = ({ user, onBookRepair }) => {
           </span>
 
           <h2>
-            Welcome back, {user?.name?.split(' ')[0] || 'Customer'}!
+            {isFirstLogin ? 'Welcome' : 'Welcome back'}, {user?.name?.split(' ')[0] || 'Customer'}!
           </h2>
 
           <p>

@@ -441,3 +441,270 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+
+/* =========================================
+   TECHNICIAN PROFILE - SIZE IMPROVEMENTS
+   ========================================= */
+
+/* Main profile page */
+.technician-profile-page {
+    padding: 12px 8px 35px;
+}
+
+/* Page heading */
+.technician-profile-heading {
+    margin-bottom: 26px;
+}
+
+.technician-profile-heading h2 {
+    font-size: 27px;
+    margin-bottom: 8px;
+}
+
+.technician-profile-heading p {
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* Success and error messages */
+.technician-profile-message {
+    padding: 15px 18px;
+    margin-bottom: 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    gap: 12px;
+}
+
+/* Main cards */
+.technician-settings-card {
+    padding: 26px 28px;
+    margin-bottom: 24px;
+    border-radius: 14px;
+}
+
+/* Section headings */
+.technician-settings-title {
+    gap: 14px;
+    margin-bottom: 25px;
+}
+
+.technician-settings-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 10px;
+}
+
+.technician-settings-title h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.technician-settings-title p {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Profile summary */
+.technician-profile-summary {
+    gap: 17px;
+    margin-bottom: 25px;
+    padding-bottom: 22px;
+}
+
+.technician-profile-avatar {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    font-size: 21px;
+}
+
+.technician-profile-identity h3 {
+    font-size: 19px;
+    margin-bottom: 7px;
+}
+
+.technician-role-badge {
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+/* Buttons */
+.technician-edit-button,
+.technician-cancel-button,
+.technician-save-button,
+.technician-password-button {
+    padding: 12px 18px;
+    font-size: 14px;
+    gap: 9px;
+    border-radius: 8px;
+}
+
+/* Profile information cards */
+.technician-profile-grid,
+.technician-app-info-grid {
+    gap: 15px 18px;
+}
+
+.technician-info-item {
+    padding: 17px 18px;
+    border-radius: 10px;
+    gap: 10px;
+    min-height: 75px;
+}
+
+.technician-info-item span {
+    font-size: 13px;
+    gap: 7px;
+}
+
+.technician-info-item strong {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Profile edit inputs */
+.technician-info-item input,
+.technician-info-item select {
+    min-height: 43px;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 7px;
+}
+
+.technician-profile-actions {
+    margin-top: 22px;
+    gap: 12px;
+}
+
+/* Notification preferences */
+.technician-notification-item {
+    min-height: 68px;
+    padding: 16px 5px;
+    gap: 20px;
+}
+
+.technician-notification-description strong {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.technician-notification-description p {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Larger toggle switches */
+.technician-switch {
+    width: 44px;
+    min-width: 44px;
+    height: 24px;
+}
+
+.technician-slider::before {
+    width: 16px;
+    height: 16px;
+    left: 4px;
+    bottom: 4px;
+}
+
+.technician-switch input:checked + .technician-slider::before {
+    transform: translateX(20px);
+}
+
+/* Security settings */
+.technician-password-form {
+    gap: 17px;
+}
+
+.technician-password-field {
+    max-width: 450px;
+    gap: 8px;
+}
+
+.technician-password-field label {
+    font-size: 13px;
+}
+
+.technician-password-field input {
+    height: 44px;
+    padding: 0 13px;
+    font-size: 14px;
+    border-radius: 7px;
+}
+
+/* Application information */
+.technician-app-info-grid {
+    gap: 15px 18px;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+    .technician-settings-card {
+        padding: 22px;
+    }
+
+    .technician-profile-grid,
+    .technician-app-info-grid {
+        gap: 13px;
+    }
+}
+
+@media (max-width: 700px) {
+    .technician-profile-page {
+        padding: 8px 0 25px;
+    }
+
+    .technician-settings-card {
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .technician-profile-heading h2 {
+        font-size: 23px;
+    }
+
+    .technician-profile-grid,
+    .technician-app-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .technician-profile-summary {
+        gap: 12px;
+    }
+
+    .technician-edit-button {
+        margin-left: auto;
+    }
+
+    .technician-password-field {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .technician-settings-card {
+        padding: 15px;
+    }
+
+    .technician-settings-title h3 {
+        font-size: 16px;
+    }
+
+    .technician-info-item {
+        padding: 14px;
+    }
+
+    .technician-info-item strong {
+        font-size: 13px;
+    }
+
+    .technician-profile-summary {
+        flex-wrap: wrap;
+    }
+
+    .technician-notification-description p {
+        max-width: 220px;
+    }
+}

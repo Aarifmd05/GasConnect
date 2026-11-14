@@ -25,6 +25,23 @@ const defaultNotifications = {
   systemNotifications: true
 };
 
+const getProfileFormData = (technician = {}) => ({
+  name: technician.name || '',
+  firstName: technician.firstName || '',
+  lastName: technician.lastName || '',
+  email: technician.email || '',
+  phone: technician.phone || '',
+  alternativeEmail: technician.alternativeEmail || '',
+  alternativePhone: technician.alternativePhone || '',
+  dateOfBirth: technician.dateOfBirth
+    ? new Date(technician.dateOfBirth).toISOString().split('T')[0]
+    : '',
+  gender: technician.gender || 'Prefer not to say',
+  specialization: technician.specialization || '',
+  experience: technician.experience ?? '',
+  profilePhoto: technician.profilePhoto || ''
+});
+
 function TechnicianProfile() {
   const [user, setUser] = useState({});
   const [editMode, setEditMode] = useState(false);
@@ -96,22 +113,7 @@ useEffect(() => {
       if (technician) {
         setUser(technician);
 
-        setFormData({
-          name: technician.name || '',
-          firstName: technician.firstName || '',
-          lastName: technician.lastName || '',
-          email: technician.email || '',
-          phone: technician.phone || '',
-          alternativeEmail: technician.alternativeEmail || '',
-          alternativePhone: technician.alternativePhone || '',
-          dateOfBirth: technician.dateOfBirth
-            ? new Date(technician.dateOfBirth).toISOString().split('T')[0]
-            : '',
-          gender: technician.gender || 'Prefer not to say',
-          specialization: technician.specialization || '',
-          experience: technician.experience ?? '',
-          profilePhoto: technician.profilePhoto || ''
-        });
+        setFormData(getProfileFormData(technician));
 
         sessionStorage.setItem('user', JSON.stringify(technician));
       }
@@ -175,27 +177,15 @@ useEffect(() => {
 
     const updatedUser = data.technician || data.user;
 
+    if (!updatedUser) {
+      throw new Error('Updated profile data was not returned by the server.');
+    }
+
     setUser(updatedUser);
     sessionStorage.setItem('user', JSON.stringify(updatedUser));
+    setFormData(getProfileFormData(updatedUser));
 
-    setFormData({
-  name: user.name || '',
-  firstName: user.firstName || '',
-  lastName: user.lastName || '',
-  email: user.email || '',
-  phone: user.phone || '',
-  alternativeEmail: user.alternativeEmail || '',
-  alternativePhone: user.alternativePhone || '',
-  dateOfBirth: user.dateOfBirth
-    ? new Date(user.dateOfBirth).toISOString().split('T')[0]
-    : '',
-  gender: user.gender || 'Prefer not to say',
-  specialization: user.specialization || '',
-  experience: user.experience ?? '',
-  profilePhoto: user.profilePhoto || ''
-});
-setEditMode(false);
-setMessage('');
+    setEditMode(false);
     setMessage('Profile updated successfully!');
 
   } catch (error) {
@@ -321,13 +311,9 @@ setMessage('');
             <button
               className="technician-cancel-button"
               onClick={() => {
-                setFormData({
-                  name: user.name || '',
-                  email: user.email || '',
-                  phone: user.phone || '',
-                  specialization: user.specialization || ''
-                });
+                setFormData(getProfileFormData(user));
                 setEditMode(false);
+                setMessage('');
               }}
             >
               <X size={15} />

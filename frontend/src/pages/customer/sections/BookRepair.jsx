@@ -30,6 +30,8 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
   const [photoPreview, setPhotoPreview] = useState('');
 
   const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const [showRepairDropdown, setShowRepairDropdown] = useState(false);
+  const repairDropdownRef = useRef(null);
   const [loadingRepairs, setLoadingRepairs] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -50,6 +52,40 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
       }
     };
   }, [photoPreview]);
+
+  // Close the custom repair dropdown when clicking outside or pressing Escape.
+  useEffect(() => {
+    if (!showRepairDropdown) return;
+
+    const handleOutsideClick = (event) => {
+      if (
+        repairDropdownRef.current &&
+        !repairDropdownRef.current.contains(event.target)
+      ) {
+        setShowRepairDropdown(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setShowRepairDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [showRepairDropdown]);
+
+  const selectedRepair = repairs.find(
+    (repair) => String(repair._id) === String(repairType)
+  );
 
   const fetchRepairs = async () => {
     try {
@@ -292,32 +328,97 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             <span className="optional-label">Optional if uploading a photo</span>
           </label>
 
-          <select
-            id="repairType"
-            value={repairType}
-            onChange={(event) => setRepairType(event.target.value)}
+          <div
+            className="repair-service-dropdown"
+            ref={repairDropdownRef}
           >
-            <option value="">
-              {loadingRepairs
-                ? 'Loading services...'
-                : 'Choose a repair service'}
-            </option>
+            <button
+              type="button"
+              id="repairType"
+              className={`repair-service-dropdown-trigger ${
+                showRepairDropdown ? 'is-open' : ''
+              }`}
+              onClick={() => setShowRepairDropdown((open) => !open)}
+              disabled={loadingRepairs || repairs.length === 0}
+              aria-haspopup="listbox"
+              aria-expanded={showRepairDropdown}
+              aria-label="Select repair service"
+            >
+              <span className={!selectedRepair ? 'placeholder' : ''}>
+                {loadingRepairs
+                  ? 'Loading services...'
+                  : selectedRepair
+                    ? `${selectedRepair.name}${
+                        selectedRepair.price != null
+                          ? ` - ₹${selectedRepair.price}`
+                          : ''
+                      }`
+                    : repairs.length === 0
+                      ? 'No repair services available'
+                      : 'Choose a repair service'}
+              </span>
 
-            {!loadingRepairs && repairs.length === 0 && (
-              <option value="" disabled>
-                No repair services available
-              </option>
+              <span
+                className={`repair-service-dropdown-chevron ${
+                  showRepairDropdown ? 'rotated' : ''
+                }`}
+                aria-hidden="true"
+              >
+                ▾
+              </span>
+            </button>
+
+            {showRepairDropdown && (
+              <div
+                className="repair-service-dropdown-menu"
+                role="listbox"
+                aria-labelledby="repairType"
+              >
+                <button
+                  type="button"
+                  className={`repair-service-dropdown-option ${
+                    !repairType ? 'selected' : ''
+                  }`}
+                  role="option"
+                  aria-selected={!repairType}
+                  onClick={() => {
+                    setRepairType('');
+                    setShowRepairDropdown(false);
+                  }}
+                >
+                  Choose a repair service
+                </button>
+
+                {repairs.map((repair) => {
+                  const optionLabel = `${repair.name}${
+                    repair.price != null ? ` - ₹${repair.price}` : ''
+                  }`;
+
+                  return (
+                    <button
+                      type="button"
+                      key={repair._id}
+                      className={`repair-service-dropdown-option ${
+                        String(repairType) === String(repair._id)
+                          ? 'selected'
+                          : ''
+                      }`}
+                      role="option"
+                      aria-selected={
+                        String(repairType) === String(repair._id)
+                      }
+                      onClick={() => {
+                        setRepairType(repair._id);
+                        setShowRepairDropdown(false);
+                      }}
+                    >
+                      {optionLabel}
+                    </button>
+                  );
+                })}
+              </div>
             )}
-
-            {repairs.map((repair) => (
-              <option key={repair._id} value={repair._id}>
-                {repair.name}
-                {repair.price != null
-                  ? ` - ₹${repair.price}`
-                  : ''}
-              </option>
-            ))}
-          </select>
+          </div>
 
           <small>
             Don't know the repair name? Upload a photo below.
@@ -337,57 +438,59 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             existing image so our technician can understand the issue.
           </p>
 
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            className="hidden-photo-input"
-            onChange={handlePhotoChange}
-          />
+          
+{/* Camera input */}
+<input
+  ref={cameraInputRef}
+  type="file"
+  accept="image/*"
+  capture="environment"
+  className="hidden-photo-input"
+  onChange={handlePhotoChange}
+/>
 
-          <input
-            ref={galleryInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden-photo-input"
-            onChange={handlePhotoChange}
-          />
+{/* Gallery input */}
+<input
+  ref={galleryInputRef}
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  className="hidden-photo-input"
+  onChange={handlePhotoChange}
+/>
+
 
           {!photoPreview ? (
-            <div className="photo-upload-options">
+            
+<div className="photo-upload-options">
+  <button
+    type="button"
+    className="photo-upload-option"
+    onClick={() => cameraInputRef.current?.click()}
+  >
+    <div className="photo-option-icon">
+      <Camera size={25} />
+    </div>
+    <div>
+      <strong>Take a Photo</strong>
+      <span>Open your camera</span>
+    </div>
+  </button>
 
-              <button
-                type="button"
-                className="photo-upload-option"
-                onClick={() => cameraInputRef.current?.click()}
-              >
-                <div className="photo-option-icon">
-                  <Camera size={25} />
-                </div>
+  <button
+    type="button"
+    className="photo-upload-option"
+    onClick={() => galleryInputRef.current?.click()}
+  >
+    <div className="photo-option-icon">
+      <ImagePlus size={25} />
+    </div>
+    <div>
+      <strong>Choose from Gallery</strong>
+      <span>Upload an existing image</span>
+    </div>
+  </button>
+</div>
 
-                <div>
-                  <strong>Take a Photo</strong>
-                  <span>Open your camera</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                className="photo-upload-option"
-                onClick={() => galleryInputRef.current?.click()}
-              >
-                <div className="photo-option-icon">
-                  <ImagePlus size={25} />
-                </div>
-
-                <div>
-                  <strong>Choose from Gallery</strong>
-                  <span>Upload an existing image</span>
-                </div>
-              </button>
-
-            </div>
           ) : (
             <div className="issue-photo-preview">
               <img

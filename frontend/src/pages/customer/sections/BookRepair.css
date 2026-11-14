@@ -422,3 +422,349 @@
     max-width: 100%;
   }
 }
+
+
+/* ==========================================
+   BOOK REPAIR - MOBILE OVERFLOW FIX
+   ========================================== */
+
+/* Prevent children from forcing page width */
+.book-repair-page,
+.book-repair-intro,
+.repair-booking-form,
+.booking-form-group,
+.booking-date-time-grid {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure all form elements fit their containers */
+.booking-form-group input,
+.booking-form-group select,
+.booking-form-group textarea {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Repair service dropdown */
+.booking-form-group select {
+    text-overflow: ellipsis;
+}
+
+/* Labels should wrap on smaller screens */
+.booking-form-group label {
+    flex-wrap: wrap;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.optional-label {
+    overflow-wrap: anywhere;
+}
+
+/* Prevent long addresses and descriptions overflowing */
+.selected-service-address,
+.selected-service-address > div,
+.booking-alert,
+.issue-photo-info,
+.photo-upload-option {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.selected-service-address p,
+.issue-photo-info strong {
+    overflow-wrap: anywhere;
+}
+
+/* Mobile layout */
+@media (max-width: 650px) {
+
+    .book-repair-page {
+        gap: 16px;
+        padding: 0;
+    }
+
+    .book-repair-intro {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .book-repair-intro h2 {
+        font-size: 18px;
+    }
+
+    .book-repair-intro p {
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .book-repair-intro-icon {
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+    }
+
+    .repair-booking-form {
+        width: 100%;
+        min-width: 0;
+        padding: 15px;
+    }
+
+    .booking-form-heading {
+        width: 100%;
+        min-width: 0;
+        gap: 7px;
+    }
+
+    .booking-form-heading h3 {
+        font-size: 17px;
+    }
+
+    .booking-form-heading span {
+        font-size: 11px;
+    }
+
+    .booking-form-group {
+        width: 100%;
+        margin-bottom: 18px;
+    }
+
+    .booking-form-group input,
+    .booking-form-group select,
+    .booking-form-group textarea {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .booking-date-time-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .booking-address-heading {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .booking-address-selector {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .photo-upload-options {
+        grid-template-columns: minmax(0, 1fr);
+        width: 100%;
+        gap: 10px;
+    }
+
+    .photo-upload-option {
+        width: 100%;
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .photo-option-icon {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+    }
+
+    .booking-form-footer {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .submit-repair-booking {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Extra small mobile screens */
+@media (max-width: 380px) {
+
+    .repair-booking-form {
+        padding: 12px;
+    }
+
+    .book-repair-intro {
+        padding: 12px;
+    }
+
+    .booking-form-group label {
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .photo-upload-option strong {
+        font-size: 12px;
+    }
+
+    .photo-upload-option span {
+        font-size: 10px;
+    }
+}
+
+/* ==========================================
+   CUSTOM REPAIR SERVICE DROPDOWN
+   Append this block to the bottom of BookRepair.css
+   ========================================== */
+
+.repair-service-dropdown {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.repair-service-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #dce4ef;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #17365d;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.repair-service-dropdown-trigger:focus,
+.repair-service-dropdown-trigger.is-open {
+  outline: none;
+  border-color: #0754a0;
+  box-shadow: 0 0 0 3px rgba(7, 84, 160, 0.08);
+}
+
+.repair-service-dropdown-trigger:disabled {
+  background: #f5f7fa;
+  color: #8492a8;
+  cursor: not-allowed;
+}
+
+.repair-service-dropdown-trigger > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.repair-service-dropdown-trigger .placeholder {
+  color: #8492a8;
+}
+
+.repair-service-dropdown-chevron {
+  flex: 0 0 auto;
+  color: #17365d;
+  transition: transform 0.2s ease;
+}
+
+.repair-service-dropdown-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.repair-service-dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(260px, 40vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  background: #ffffff;
+  border: 1px solid #dce4ef;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(16, 42, 76, 0.16);
+  box-sizing: border-box;
+}
+
+.repair-service-dropdown-option {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid #edf1f6;
+  background: #ffffff;
+  color: #17365d;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.repair-service-dropdown-option:last-child {
+  border-bottom: 0;
+}
+
+.repair-service-dropdown-option:hover,
+.repair-service-dropdown-option:focus {
+  outline: none;
+  background: #f1f6fd;
+}
+
+.repair-service-dropdown-option.selected {
+  background: #eaf3ff;
+  color: #0754a0;
+  font-weight: 700;
+}
+
+@media (max-width: 650px) {
+  .repair-service-dropdown-trigger {
+    min-height: 48px;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .repair-service-dropdown-menu {
+    max-height: min(240px, 35vh);
+    border-radius: 9px;
+  }
+
+  .repair-service-dropdown-option {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+/* Completely hide the actual file inputs */
+.booking-form-group input.hidden-photo-input {
+    display: none !important;
+    visibility: hidden;
+    position: absolute;
+    width: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+

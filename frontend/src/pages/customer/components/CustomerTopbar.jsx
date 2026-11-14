@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   MapPin,
   Bell,
@@ -28,6 +27,7 @@ const CustomerTopbar = ({
   const [showLocations, setShowLocations] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef(null);
 
   const displayName = user?.name || 'Customer';
 
@@ -52,6 +52,25 @@ const CustomerTopbar = ({
     setShowNotifications(false);
     onOpenNotifications?.();
   };
+
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      notificationRef.current &&
+      !notificationRef.current.contains(event.target)
+    ) {
+      setShowNotifications(false);
+    }
+  };
+
+  document.addEventListener('mousedown', handleOutsideClick);
+  document.addEventListener('touchstart', handleOutsideClick);
+
+  return () => {
+    document.removeEventListener('mousedown', handleOutsideClick);
+    document.removeEventListener('touchstart', handleOutsideClick);
+  };
+}, []);
 
   return (
     <header className="customer-topbar">
@@ -117,7 +136,10 @@ const CustomerTopbar = ({
       <div className="topbar-right">
 
         {/* Notification Bell */}
-        <div className="topbar-notification-wrapper">
+        <div
+  className="topbar-notification-wrapper"
+  ref={notificationRef}
+>
 
           <button
             className="topbar-icon-btn"

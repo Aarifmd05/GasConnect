@@ -2274,6 +2274,43 @@ router.put('/customer/profile', authMiddleware, async (req, res) => {
     }
 });
 
+
+// ==========================================
+// GET - Technician Profile
+// ==========================================
+router.get('/technician/profile', authMiddleware, async (req, res) => {
+    try {
+        if (req.user.role !== 'technician') {
+            return res.status(403).json({
+                message: 'Access denied. Technicians only.'
+            });
+        }
+
+        const technician = await User.findOne({
+            _id: req.user.id,
+            role: 'technician'
+        }).select('-password');
+
+        if (!technician) {
+            return res.status(404).json({
+                message: 'Technician account not found.'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Technician profile fetched successfully!',
+            technician
+        });
+
+    } catch (error) {
+        console.error('Fetch technician profile error:', error);
+
+        return res.status(500).json({
+            message: 'Unable to fetch technician profile.'
+        });
+    }
+});
+
 // Technician Profile Update API
 router.put('/technician/profile', authMiddleware, async (req, res) => {
     try {
@@ -2351,7 +2388,7 @@ router.put('/technician/profile', authMiddleware, async (req, res) => {
   });
 }
 
-user.phone = cleanPhone;
+technician.phone = cleanPhone;
         }
 
         // Alternative email
@@ -2652,6 +2689,8 @@ router.put('/change-password', authMiddleware, async (req, res) => {
 // ==========================================
 // ADMIN - GET PROFILE
 // ==========================================
+
+// ADMIN - GET PROFILE
 router.get('/admin/profile', authMiddleware, async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -2671,13 +2710,6 @@ router.get('/admin/profile', authMiddleware, async (req, res) => {
             });
         }
 
-        // Prevent changes to the registered phone number
-if (cleanPhone !== admin.phone) {
-    return res.status(403).json({
-        message: 'The registered phone number cannot be changed.'
-    });
-}
-
         return res.status(200).json({
             admin
         });
@@ -2690,6 +2722,7 @@ if (cleanPhone !== admin.phone) {
         });
     }
 });
+
 
 // ==========================================
 // ADMIN - UPDATE PROFILE
@@ -2725,7 +2758,7 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
             !phone.trim()
         ) {
             return res.status(400).json({
-                message: 'First name, last name, email and phone are required.'
+                message: 'First name, Last name and Phone Number are required.'
             });
         }
 

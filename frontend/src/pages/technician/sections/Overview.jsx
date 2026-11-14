@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import {
   BriefcaseBusiness,
@@ -14,7 +13,7 @@ import './Overview.css';
 
 const API_URL = 'http://localhost:3006/api';
 
-function Overview({ user }) {
+function Overview({ user, isFirstLogin = false }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -116,7 +115,9 @@ function Overview({ user }) {
     <div className="technician-overview">
       <div className="overview-heading">
         <div>
-          <h2>Welcome back, {user?.name || 'Technician'}!</h2>
+          <h2>
+            {isFirstLogin ? 'Welcome' : 'Welcome back'}, {user?.name || 'Technician'}!
+          </h2>
           <p>Here's an overview of your service activities.</p>
         </div>
 
