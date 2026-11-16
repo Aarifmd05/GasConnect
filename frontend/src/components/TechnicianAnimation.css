@@ -13,10 +13,10 @@
 /* Stationary cylinder */
 .animation-cylinder {
     position: fixed;
-    left: 0%;
+    left: 10%;
     bottom: 80px;
-    width: 35%;
-    max-height: 350px;
+    width: 30%;
+    max-height: 250px;
     object-fit: contain;
     z-index: 1;
 }

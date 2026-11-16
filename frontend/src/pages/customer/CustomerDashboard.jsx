@@ -326,7 +326,7 @@ const CustomerDashboard = () => {
     trackTechnician: 'Track Technician',
     reviews: 'Reviews & Ratings',
     notifications: 'Notifications',
-    chatbot: 'AI Chatbot',
+    chatbot: 'Chatbot',
     myOrders: 'My Orders',
     profile: 'My Profile'
   };

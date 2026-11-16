@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { showWarning } from '../../../utils/alerts.js';
 
 import './ProductsSection.css';
 import {
@@ -161,17 +162,17 @@ function ProductsSection({
         const stock = Number(newProduct.stock);
 
         if (!newProduct.name.trim() || !newProduct.category.trim()) {
-            alert('Please enter the product name and category.');
+            showWarning('Please enter the product name and category.');
             return;
         }
 
         if (!Number.isFinite(price) || price < 0) {
-            alert('Please enter a valid price.');
+            showWarning('Please enter a valid price.');
             return;
         }
 
         if (!Number.isInteger(stock) || stock < 0) {
-            alert('Please enter a valid stock quantity.');
+            showWarning('Please enter a valid stock quantity.');
             return;
         }
 
@@ -201,14 +202,9 @@ function ProductsSection({
     };
 
     // Delete product
+    // Confirmation is handled inside AdminDashboard's handleDeleteProduct.
     const confirmDeleteProduct = async (product) => {
-        const confirmed = window.confirm(
-            `Are you sure you want to delete "${product.name}"?`
-        );
-
-        if (confirmed) {
-            await handleDeleteProduct(product._id);
-        }
+        await handleDeleteProduct(product._id);
     };
 
     // Open restock modal
@@ -230,7 +226,7 @@ function ProductsSection({
         const quantity = Number(restockQuantity);
 
         if (!Number.isInteger(quantity) || quantity <= 0) {
-            alert('Enter a valid quantity greater than zero.');
+            showWarning('Enter a valid quantity greater than zero.');
             return;
         }
 

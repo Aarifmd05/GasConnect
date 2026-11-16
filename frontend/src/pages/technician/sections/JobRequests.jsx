@@ -12,7 +12,9 @@ import {
   XCircle,
   Image as ImageIcon
 } from 'lucide-react';
+
 import './JobRequests.css';
+import { showConfirm } from '../../../utils/alerts';
 
 const API_URL = 'http://localhost:3006/api';
 
@@ -64,11 +66,15 @@ function JobRequests() {
   const respondToJob = async (jobId, responseType) => {
     const action = responseType === 'accepted' ? 'accept' : 'reject';
 
-    const confirmed = window.confirm(
-      `Are you sure you want to ${action} this repair request?`
+    // Show SweetAlert2 confirmation popup.
+    const result = await showConfirm(
+      `Are you sure you want to ${action} this repair request?`,
+      responseType === 'accepted'
+        ? 'Accept Job Request?'
+        : 'Reject Job Request?'
     );
 
-    if (!confirmed) return;
+    if (!result.isConfirmed) return;
 
     try {
       setProcessingId(jobId);
@@ -277,7 +283,10 @@ function JobRequests() {
                       Customer's Problem Photo
                     </h4>
                     <a href={photoUrl} target="_blank" rel="noreferrer">
-                      <img src={photoUrl} alt="Customer's reported appliance problem" />
+                      <img
+                        src={photoUrl}
+                        alt="Customer's reported appliance problem"
+                      />
                     </a>
                   </div>
                 )}

@@ -16,6 +16,7 @@ import AuthLayout from '../../components/AuthLayout';
 import logo from '../../assets/logo.png';
 
 import './CustomerSignup.css';
+import { showSuccess } from '../../utils/alerts';
 
 const API_URL = 'http://localhost:3006/api/users/customer';
 
@@ -212,7 +213,7 @@ const handleGoogleSuccess = async (credentialResponse) => {
                 }
             );
 
-            alert(
+            showSuccess(
                 response.data.message ||
                 'Account created successfully!'
             );

@@ -10,6 +10,8 @@ import {
     RefreshCw,
     AlertCircle
 } from 'lucide-react';
+import { showWarning } from '../../../utils/alerts';
+
 
 function RepairTypesSection({
     repairTypes = [],
@@ -97,7 +99,7 @@ function RepairTypesSection({
             formData.price === '' ||
             Number(formData.price) < 0
         ) {
-            window.alert('Please enter valid details in all fields.');
+            showWarning('Please enter valid details in all fields.');
             return;
         }
 

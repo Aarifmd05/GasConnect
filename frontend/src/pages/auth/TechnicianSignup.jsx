@@ -21,6 +21,7 @@ import logo from '../../assets/logo.png';
 import mascot from '../../assets/img2.png';
 
 import './TechnicianSignup.css';
+import { showSuccess } from '../../utils/alerts';
 
 function TechnicianSignup() {
     const navigate = useNavigate();
@@ -334,7 +335,7 @@ function TechnicianSignup() {
                 }
             );
 
-            alert(
+            showSuccess(
                 response.data.message ||
                 'Technician registered successfully!'
             );

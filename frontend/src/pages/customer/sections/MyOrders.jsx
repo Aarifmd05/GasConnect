@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import './MyOrders.css';
+import { showWarning } from '../../../utils/alerts';
 
 const API_URL = 'http://localhost:3006/api';
 
@@ -122,7 +123,7 @@ const handleDownloadInvoice = async (order) => {
       message = err.response?.data?.message || err.message || message;
     }
 
-    alert(message);
+    showWarning(message);
 
   } finally {
     setDownloadingId(null);

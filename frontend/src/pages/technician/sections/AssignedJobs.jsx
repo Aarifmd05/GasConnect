@@ -14,7 +14,9 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
+
 import './AssignedJobs.css';
+import { showConfirm } from '../../../utils/alerts';
 
 const API_URL = 'http://localhost:3006/api';
 
@@ -58,12 +60,21 @@ export default function AssignedJobs() {
     fetchJobs();
   }, [fetchJobs]);
 
+  // Update job status
   const updateJobStatus = async (jobId, status) => {
     const action = status === 'in-progress'
       ? 'start this repair'
       : 'mark this repair as completed';
 
-    if (!window.confirm(`Are you sure you want to ${action}?`)) {
+    // Show SweetAlert2 confirmation popup
+    const result = await showConfirm(
+      `Are you sure you want to ${action}?`,
+      status === 'in-progress'
+        ? 'Start Repair?'
+        : 'Complete Job?'
+    );
+
+    if (!result.isConfirmed) {
       return;
     }
 

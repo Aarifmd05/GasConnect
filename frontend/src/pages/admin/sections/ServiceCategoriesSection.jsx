@@ -10,6 +10,7 @@ import {
     RefreshCw,
     AlertCircle
 } from 'lucide-react';
+import { showWarning } from '../../../utils/alerts';
 
 function ServiceCategoriesSection({
     serviceCategories = [],
@@ -75,7 +76,7 @@ function ServiceCategoriesSection({
         e.preventDefault();
 
         if (!formData.name || !formData.description.trim()) {
-            window.alert('Please fill in all fields.');
+            showWarning('Please fill in all fields.');
             return;
         }
 

@@ -12,7 +12,10 @@ import {
   Wrench
 } from 'lucide-react';
 
+
+
 import './MyBookings.css';
+import { showConfirm, showError, showSuccess } from '../../../utils/alerts';
 
 const API_URL = 'http://localhost:3006/api';
 
@@ -43,10 +46,13 @@ const MyBookings = () => {
       setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error fetching bookings:', err);
-      setError(
+
+      const errorMessage =
         err.response?.data?.message ||
-        'Unable to load your bookings. Please try again.'
-      );
+        'Unable to load your bookings. Please try again.';
+
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -57,11 +63,12 @@ const MyBookings = () => {
   }, [fetchBookings]);
 
   const handleCancel = async (bookingId) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to cancel this repair booking?'
+    const result = await showConfirm(
+      'Are you sure you want to cancel this repair booking?',
+      'Cancel Repair Booking?'
     );
 
-    if (!confirmed) return;
+    if (!result.isConfirmed) return;
 
     try {
       setCancellingId(bookingId);
@@ -69,7 +76,7 @@ const MyBookings = () => {
 
       const token = sessionStorage.getItem('token');
 
-      await axios.put(
+      const response = await axios.put(
         `${API_URL}/bookings/customer/cancel/${bookingId}`,
         {},
         {
@@ -80,12 +87,19 @@ const MyBookings = () => {
       );
 
       await fetchBookings();
+
+      await showSuccess(
+        response.data.message || 'Repair booking cancelled successfully.'
+      );
     } catch (err) {
       console.error('Booking cancellation failed:', err);
-      setError(
+
+      const errorMessage =
         err.response?.data?.message ||
-        'Unable to cancel this booking. Please try again.'
-      );
+        'Unable to cancel this booking. Please try again.';
+
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setCancellingId(null);
     }
@@ -109,15 +123,21 @@ const MyBookings = () => {
 
   const filteredBookings = bookings.filter((booking) => {
     if (filter === 'all') return true;
+
     if (filter === 'active') {
       return ['pending', 'assigned', 'accepted', 'in-progress'].includes(
         booking.status
       );
     }
-    if (filter === 'completed') return booking.status === 'completed';
+
+    if (filter === 'completed') {
+      return booking.status === 'completed';
+    }
+
     if (filter === 'cancelled') {
       return ['cancelled', 'rejected'].includes(booking.status);
     }
+
     return true;
   });
 

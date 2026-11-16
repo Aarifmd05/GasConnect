@@ -2,8 +2,7 @@
 import {
     BrowserRouter,
     Routes,
-    Route,
-    Navigate
+    Route
 } from 'react-router-dom';
 
 import CustomerSignup from './pages/auth/CustomerSignup.jsx';
@@ -17,6 +16,7 @@ import TechnicianForgotPassword from './pages/auth/TechnicianForgotPassword.jsx'
 import CustomerForgotPassword from './pages/auth/CustomerForgotPassword.jsx';
 import CustomerDashboard from './pages/customer/CustomerDashboard.jsx';
 import TechnicianDashboard from './pages/technician/TechnicianDashboard';
+import Home from "./pages/home.jsx";
 
 
 import { ThemeProvider } from './context/ThemeContext.jsx';
@@ -80,15 +80,10 @@ function App() {
                         element={<TechnicianDashboard />}
                     />
 
-                    <Route
-                        path="/"
-                        element={
-                            <Navigate
-                                to="/customer/signup"
-                                replace
-                            />
-                        }
-                    />
+                   <Route
+    path="/"
+    element={<Home />}
+/>
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

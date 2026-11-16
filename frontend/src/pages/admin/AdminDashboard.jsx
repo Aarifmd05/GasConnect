@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import useAdminNotifications from "../../hooks/useAdminNotifications";
+import { showSuccess, showError, showWarning, showConfirm } from "../../utils/alerts.js";
 import {
     filterBookings,
     filterCustomers,
@@ -85,7 +87,7 @@ function AdminDashboard() {
                 invoiceWindow = window.open('', '_blank');
 
                 if (!invoiceWindow) {
-                    alert('Please allow pop-ups to view the invoice.');
+                    showWarning('Please allow pop-ups to view the invoice.');
                     return;
                 }
             }
@@ -136,7 +138,7 @@ function AdminDashboard() {
             }
 
             console.error('Invoice Error:', error);
-            alert('Unable to retrieve invoice. Please try again.');
+            showError('Unable to retrieve invoice. Please try again.');
         }
     };
 
@@ -194,11 +196,11 @@ function AdminDashboard() {
 
     // Update customer order status
     const handleOrderStatusUpdate = async (orderId, orderStatus) => {
-        const confirmed = window.confirm(
+        const confirmation = await showConfirm(
             `Are you sure you want to change this order status to ${orderStatus}?`
         );
 
-        if (!confirmed) return;
+        if (!confirmation.isConfirmed) return;
 
         try {
             const token = getToken();
@@ -225,7 +227,7 @@ function AdminDashboard() {
                 await fetchProducts();
             }
 
-            window.alert(
+            showSuccess(
                 response.data.message || 'Order status updated successfully.'
             );
         } catch (error) {
@@ -233,7 +235,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to update order status.'
             );
@@ -436,11 +438,11 @@ function AdminDashboard() {
     const handleTechnicianStatus = async (technicianId, approvalStatus) => {
         const action = approvalStatus === 'approved' ? 'approve' : 'reject';
 
-        const confirmed = window.confirm(
+        const confirmation = await showConfirm(
             `Are you sure you want to ${action} this technician?`
         );
 
-        if (!confirmed) return;
+        if (!confirmation.isConfirmed) return;
 
         setUpdatingTechnician(technicianId);
 
@@ -458,7 +460,7 @@ function AdminDashboard() {
             await fetchTechnicians();
             await fetchDashboardStats();
 
-            window.alert(
+            showSuccess(
                 approvalStatus === 'approved'
                     ? 'Technician approved successfully!'
                     : 'Technician rejected successfully!'
@@ -468,7 +470,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to update technician status.'
             );
@@ -479,11 +481,12 @@ function AdminDashboard() {
 
 
     const handleDeleteTechnician = async (technician) => {
-        const confirmed = window.confirm(
-            `Are you sure you want to permanently delete ${technician.name}'s account?\n\nTheir login credentials and profile will be deleted. This action cannot be undone.`
+        const confirmation = await showConfirm(
+            `Are you sure you want to permanently delete ${technician.name}'s account?\n\nTheir login credentials and profile will be deleted. This action cannot be undone.`,
+            'Delete technician?'
         );
 
-        if (!confirmed) return;
+        if (!confirmation.isConfirmed) return;
 
         setDeletingTechnician(technician._id);
 
@@ -507,7 +510,7 @@ function AdminDashboard() {
             await fetchTechnicians();
             await fetchDashboardStats();
 
-            window.alert(
+            showSuccess(
                 response.data.message || 'Technician deleted successfully!'
             );
 
@@ -516,7 +519,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to delete technician. Please try again.'
             );
@@ -784,7 +787,7 @@ function AdminDashboard() {
                 return false;
             }
 
-            alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to add product. Please try again.'
             );
@@ -831,7 +834,7 @@ function AdminDashboard() {
                 return false;
             }
 
-            alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to update product. Please try again.'
             );
@@ -842,11 +845,12 @@ function AdminDashboard() {
 
     // Delete product
     const handleDeleteProduct = async (productId) => {
-        const confirmDelete = window.confirm(
-            'Are you sure you want to delete this product?'
+        const confirmation = await showConfirm(
+            'Are you sure you want to delete this product?',
+            'Delete product?'
         );
 
-        if (!confirmDelete) {
+        if (!confirmation.isConfirmed) {
             return false;
         }
 
@@ -880,7 +884,7 @@ function AdminDashboard() {
                 return false;
             }
 
-            alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to delete product. Please try again.'
             );
@@ -891,21 +895,39 @@ function AdminDashboard() {
 
     // Restock product
     const handleRestockProduct = async (productId) => {
-        const quantity = window.prompt(
-            'Enter the quantity you want to add:'
-        );
+        const quantityResult = await Swal.fire({
+            title: 'Restock product',
+            text: 'Enter the quantity you want to add:',
+            input: 'number',
+            inputAttributes: {
+                min: 1,
+                step: 1
+            },
+            inputPlaceholder: 'Enter quantity',
+            showCancelButton: true,
+            confirmButtonText: 'Continue',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#0754A0',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true,
+            inputValidator: (value) => {
+                if (!value || !Number.isSafeInteger(Number(value)) || Number(value) <= 0) {
+                    return 'Please enter a valid positive whole number.';
+                }
+            }
+        });
 
-        if (quantity === null) {
+        if (!quantityResult.isConfirmed) {
             return false;
         }
 
-        const restockQuantity = Number(quantity);
+        const restockQuantity = Number(quantityResult.value);
 
         if (
             !Number.isSafeInteger(restockQuantity) ||
             restockQuantity <= 0
         ) {
-            alert('Please enter a valid positive whole number.');
+            showWarning('Please enter a valid positive whole number.');
             return false;
         }
 
@@ -942,7 +964,7 @@ function AdminDashboard() {
                 return false;
             }
 
-            alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to restock product. Please try again.'
             );
@@ -984,7 +1006,7 @@ function AdminDashboard() {
                 return false;
             }
 
-            alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to update product availability.'
             );
@@ -1046,7 +1068,7 @@ function AdminDashboard() {
             );
 
             await fetchRepairTypes();
-            window.alert('Repair type added successfully!');
+            showSuccess('Repair type added successfully!');
             return true;
 
         } catch (error) {
@@ -1054,7 +1076,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return false;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to add repair type.'
             );
@@ -1087,7 +1109,7 @@ function AdminDashboard() {
             );
 
             await fetchRepairTypes();
-            window.alert('Repair type updated successfully!');
+            showSuccess('Repair type updated successfully!');
             return true;
 
         } catch (error) {
@@ -1095,7 +1117,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return false;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to update repair type.'
             );
@@ -1125,7 +1147,7 @@ function AdminDashboard() {
 
             await fetchRepairTypes();
 
-            window.alert('Repair type deleted successfully!');
+            showSuccess('Repair type deleted successfully!');
             return true;
 
         } catch (error) {
@@ -1133,7 +1155,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return false;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to delete repair type.'
             );
@@ -1173,7 +1195,7 @@ function AdminDashboard() {
             await fetchCategories();
             await fetchRepairTypes();
 
-            window.alert('Service category added successfully!');
+            showSuccess('Service category added successfully!');
             return true;
 
         } catch (error) {
@@ -1181,7 +1203,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return false;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to add service category.'
             );
@@ -1214,7 +1236,7 @@ function AdminDashboard() {
             await fetchCategories();
             await fetchRepairTypes();
 
-            window.alert('Service category updated successfully!');
+            showSuccess('Service category updated successfully!');
             return true;
 
         } catch (error) {
@@ -1222,7 +1244,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return false;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to update service category.'
             );
@@ -1251,7 +1273,7 @@ function AdminDashboard() {
             await fetchCategories();
             await fetchRepairTypes();
 
-            window.alert('Service category deleted successfully!');
+            showSuccess('Service category deleted successfully!');
             return true;
 
         } catch (error) {
@@ -1259,7 +1281,7 @@ function AdminDashboard() {
 
             if (handleAuthError(error)) return false;
 
-            window.alert(
+            showError(
                 error.response?.data?.message ||
                 'Unable to delete service category.'
             );
@@ -1304,7 +1326,7 @@ function AdminDashboard() {
                 throw new Error(data.message || 'Assignment failed.');
             }
 
-            window.alert(
+            showSuccess(
                 data.message ||
                 (technicianId
                     ? 'Technician assigned successfully!'
@@ -1320,7 +1342,7 @@ function AdminDashboard() {
 
         } catch (error) {
             console.error('Booking assignment error:', error);
-            window.alert(error.message || 'Failed to assign booking.');
+            showError(error.message || 'Failed to assign booking.');
         } finally {
             setAssigningBooking('');
         }

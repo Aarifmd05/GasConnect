@@ -26,7 +26,7 @@ const navigationItems = [
   { id: 'trackTechnician', label: 'Track Technician', icon: MapPin },
   { id: 'reviews', label: 'Reviews & Ratings', icon: Star },
   { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'chatbot', label: 'AI Chatbot', icon: MessageCircle },
+  { id: 'chatbot', label: 'Chatbot', icon: MessageCircle },
   { id: 'profile', label: 'My Profile', icon: UserRound }
 ];
 
