@@ -1,0 +1,215 @@
+/* Styles used by the Technicians component. */
+
+:root[data-theme="dark"] .admin-technician-toolbar h3 {
+color: #8FC5FF;
+}
+
+:root[data-theme="dark"] .admin-technician-table td {
+color: var(--gc-text);
+    border-bottom-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .admin-technician-table th {
+background: #0754A0;
+    color: #FFFFFF;
+}
+
+:root[data-theme="dark"] .admin-technician-table tbody tr:hover {
+background: var(--gc-surface-secondary);
+}
+
+.admin-technician-summary {
+display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.admin-technician-summary div {
+display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 18px;
+    background: #FFFFFF;
+    border-radius: 10px;
+    color: #0754A0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.admin-technician-toolbar {
+display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.admin-technician-toolbar h3 {
+color: #0754A0;
+    margin: 0;
+}
+
+.admin-technician-toolbar button {
+display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #0754A0;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.admin-technician-toolbar button:disabled {
+opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-technician-table {
+width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
+}
+
+.admin-technician-table th,
+.admin-technician-table td {
+padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #E8EDF3;
+    font-size: 13px;
+}
+
+.admin-technician-table th {
+background: #0754A0;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.admin-technician-table td {
+color: #333333;
+}
+
+.admin-technician-table tbody tr:hover {
+background: var(--gc-background);
+}
+
+.admin-technician-table small {
+display: inline-block;
+    margin-top: 5px;
+    color: #777777;
+}
+
+.admin-technician-actions {
+display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.admin-technician-actions button {
+display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.admin-approve-button {
+background: #198754;
+}
+
+.admin-reject-button {
+background: #DC3545;
+}
+
+.admin-technician-actions button:disabled {
+opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-category-table .admin-technician-actions {
+display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-technician-toolbar {
+display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+@media (max-width: 600px) {
+.admin-technician-toolbar {
+align-items: flex-start;
+}
+}
+
+@media (max-width: 768px) {
+.admin-technician-summary {
+flex-direction: column;
+}
+
+.admin-technician-toolbar {
+align-items: flex-start;
+}
+}
+
+@media (max-width: 600px) {
+.admin-technician-toolbar {
+align-items: flex-start;
+        flex-direction: column;
+}
+}
+
+:root[data-theme="dark"] .admin-technician-table small,
+:root[data-theme="dark"] .admin-action-completed {
+color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-technician-summary div {
+background: var(--gc-surface);
+    color: #8FC5FF;
+    box-shadow: var(--gc-shadow);
+}
+
+.admin-technician-profile-photo {
+width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.admin-technician-profile-photo:hover {
+transform: scale(1.1);
+}
+
+.admin-technician-no-photo {
+font-size: 12px;
+    color: #9ca3af;
+}
+
+.admin-action-completed {
+color: #777777;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+.admin-technician-toolbar {
+align-items: flex-start;
+}
+}

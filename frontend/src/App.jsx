@@ -62,23 +62,23 @@ function App() {
                     />
 
                     <Route
-    path="/technician/forgot-password"
-    element={<TechnicianForgotPassword />}
-/>
-
-<Route
-    path="/customer/forgot-password"
-    element={<CustomerForgotPassword />}
-/>
+                        path="/technician/forgot-password"
+                        element={<TechnicianForgotPassword />}
+                    />
 
                     <Route
-    path="/customer/dashboard"
-    element={<CustomerDashboard />}
-/>
-<Route
-  path="/technician/dashboard"
-  element={<TechnicianDashboard />}
-/>
+                        path="/customer/forgot-password"
+                        element={<CustomerForgotPassword />}
+                    />
+
+                    <Route
+                        path="/customer/dashboard"
+                        element={<CustomerDashboard />}
+                    />
+                    <Route
+                        path="/technician/dashboard"
+                        element={<TechnicianDashboard />}
+                    />
 
                     <Route
                         path="/"

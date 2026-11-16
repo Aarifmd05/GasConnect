@@ -1,3 +1,4 @@
+import './TechniciansSection.css';
 
 import {
     HardHat,

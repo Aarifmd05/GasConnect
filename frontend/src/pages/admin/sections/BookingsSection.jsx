@@ -1,3 +1,4 @@
+import './BookingsSection.css';
 
 import {
     CalendarCheck,

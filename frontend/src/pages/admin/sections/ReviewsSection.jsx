@@ -1,5 +1,6 @@
 
 import { useMemo, useState } from 'react';
+import './ReviewsSection.css';
 import {
     Star,
     MessageSquare,

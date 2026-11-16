@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import './RepairTypesSection.css';
 import {
     Wrench,
     Plus,

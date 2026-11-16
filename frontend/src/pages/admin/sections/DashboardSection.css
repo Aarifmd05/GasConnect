@@ -1,0 +1,77 @@
+/* Styles used by the Dashboard component. */
+
+.admin-dashboard-bottom {
+display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 28px;
+}
+
+.admin-quick-actions button {
+width: 100%;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 13px;
+    margin-top: 12px;
+    border: 1px solid #E6EDF5;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #0754A0;
+    font-size: 12px;
+    text-align: left;
+    transition: 0.2s ease;
+}
+
+.admin-quick-actions button:hover {
+background: #EAF3FF;
+    border-color: #0754A0;
+}
+
+.admin-empty-activity {
+min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #A0AEC0;
+    gap: 10px;
+}
+
+.admin-empty-activity h3 {
+font-size: 14px;
+    color: #526B87;
+}
+
+.admin-empty-activity span {
+max-width: 260px;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+.admin-dashboard-bottom {
+grid-template-columns: 1fr;
+}
+}
+
+:root[data-theme="dark"] .admin-quick-actions button {
+background: var(--gc-surface-secondary);
+    border-color: var(--gc-border);
+    color: #8FC5FF;
+}
+
+:root[data-theme="dark"] .admin-quick-actions button:hover {
+background: #263D5C;
+    border-color: #4B9BE8;
+}
+
+:root[data-theme="dark"] .admin-empty-activity {
+color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-empty-activity h3 {
+color: var(--gc-text);
+}

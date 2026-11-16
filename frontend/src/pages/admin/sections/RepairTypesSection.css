@@ -1,0 +1,210 @@
+/* Styles used by the RepairTypes component. */
+
+:root[data-theme="dark"] .admin-repair-table td {
+color: var(--gc-text);
+    border-bottom-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .admin-repair-table th {
+background: #0754A0;
+    color: #FFFFFF;
+}
+
+:root[data-theme="dark"] .admin-repair-table tbody tr:hover {
+background: var(--gc-surface-secondary);
+}
+
+:root[data-theme="dark"] .admin-repair-field input,
+:root[data-theme="dark"] .admin-repair-field select,
+:root[data-theme="dark"] .admin-repair-field textarea {
+background: var(--gc-input-background);
+    color: var(--gc-text);
+    border-color: var(--gc-border);
+}
+
+.admin-repair-table {
+width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+}
+
+.admin-repair-table th,
+.admin-repair-table td {
+padding: 14px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #E8EDF3;
+    font-size: 13px;
+}
+
+.admin-repair-table th {
+background: #0754A0;
+    color: #FFFFFF;
+    white-space: nowrap;
+}
+
+.admin-repair-table tbody tr:hover {
+background: var(--gc-background);
+}
+
+.admin-repair-form {
+background: #FFFFFF;
+    padding: 22px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-repair-form-grid {
+display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.admin-repair-field {
+display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-repair-field label {
+font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.admin-repair-field input,
+.admin-repair-field select,
+.admin-repair-field textarea {
+width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #D6DEEA;
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+}
+
+.admin-repair-field input:focus,
+.admin-repair-field select:focus,
+.admin-repair-field textarea:focus {
+border-color: #0754A0;
+}
+
+.admin-repair-description {
+grid-column: 1 / -1;
+}
+
+.admin-repair-field textarea {
+resize: vertical;
+}
+
+.admin-repair-form-actions {
+display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.admin-repair-form-actions button {
+display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 7px;
+    background: #0754A0;
+    color: #FFFFFF;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-repair-form-actions button:disabled {
+opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.admin-repair-form-actions .admin-repair-cancel-button {
+background: #E9EDF2;
+    color: #333333;
+}
+
+.admin-repair-hint {
+margin-top: 12px;
+    color: #B45309;
+    font-size: 13px;
+}
+
+.admin-repair-description-cell {
+min-width: 220px;
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+.admin-repair-actions {
+display: flex;
+    gap: 8px;
+}
+
+.admin-repair-actions button {
+display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.admin-repair-edit-button {
+background: #E0EFFF;
+    color: #0754A0;
+}
+
+.admin-repair-delete-button {
+background: #FEE2E2;
+    color: #B91C1C;
+}
+
+.admin-repair-actions button:disabled {
+opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+.admin-repair-form-grid {
+grid-template-columns: 1fr;
+}
+
+.admin-repair-description {
+grid-column: auto;
+}
+
+.admin-repair-form-actions {
+flex-direction: column;
+}
+
+.admin-repair-form-actions button {
+width: 100%;
+}
+}
+
+:root[data-theme="dark"] .admin-repair-form {
+background: var(--gc-surface);
+    box-shadow: var(--gc-shadow);
+}
+
+:root[data-theme="dark"] .admin-repair-field label {
+color: var(--gc-text);
+}
+
+:root[data-theme="dark"] .admin-repair-field input::placeholder,
+:root[data-theme="dark"] .admin-repair-field textarea::placeholder {
+color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-repair-form-actions .admin-repair-cancel-button {
+background: var(--gc-surface-secondary);
+    color: var(--gc-text);
+}

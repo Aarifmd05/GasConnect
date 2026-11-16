@@ -48,73 +48,73 @@ function CustomerLogin() {
     };
 
     // Google login
-    
-const handleGoogleSuccess = async (credentialResponse) => {
-    setError('');
 
-    try {
-        setGoogleLoading(true);
-
-        const credential = credentialResponse.credential;
-
-        let response;
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
 
         try {
-            // First attempt
-            response = await axios.post(
-                'http://localhost:3006/api/users/customer/google-login',
-                { credential }
-            );
+            setGoogleLoading(true);
 
-        } catch (err) {
-            // New customer needs a phone number
-            if (err.response?.data?.code === 'PHONE_REQUIRED') {
+            const credential = credentialResponse.credential;
 
-                const phone = window.prompt(
-                    'Enter your 10-digit mobile number to complete registration:'
-                );
+            let response;
 
-                if (!phone) {
-                    setError('Phone number is required for registration.');
-                    return;
-                }
-
-                if (!/^[0-9]{10}$/.test(phone.trim())) {
-                    setError('Please enter a valid 10-digit phone number.');
-                    return;
-                }
-
-                // Retry with phone number
+            try {
+                // First attempt
                 response = await axios.post(
                     'http://localhost:3006/api/users/customer/google-login',
-                    {
-                        credential,
-                        phone: phone.trim()
-                    }
+                    { credential }
                 );
 
-            } else {
-                throw err;
+            } catch (err) {
+                // New customer needs a phone number
+                if (err.response?.data?.code === 'PHONE_REQUIRED') {
+
+                    const phone = window.prompt(
+                        'Enter your 10-digit mobile number to complete registration:'
+                    );
+
+                    if (!phone) {
+                        setError('Phone number is required for registration.');
+                        return;
+                    }
+
+                    if (!/^[0-9]{10}$/.test(phone.trim())) {
+                        setError('Please enter a valid 10-digit phone number.');
+                        return;
+                    }
+
+                    // Retry with phone number
+                    response = await axios.post(
+                        'http://localhost:3006/api/users/customer/google-login',
+                        {
+                            credential,
+                            phone: phone.trim()
+                        }
+                    );
+
+                } else {
+                    throw err;
+                }
             }
+
+            sessionStorage.setItem('token', response.data.token);
+            sessionStorage.setItem(
+                'user',
+                JSON.stringify(response.data.user)
+            );
+
+            navigate('/customer/dashboard');
+
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                'Google login failed. Please try again.'
+            );
+        } finally {
+            setGoogleLoading(false);
         }
-
-        sessionStorage.setItem('token', response.data.token);
-        sessionStorage.setItem(
-            'user',
-            JSON.stringify(response.data.user)
-        );
-
-        navigate('/customer/dashboard');
-
-    } catch (err) {
-        setError(
-            err.response?.data?.message ||
-            'Google login failed. Please try again.'
-        );
-    } finally {
-        setGoogleLoading(false);
-    }
-};
+    };
 
 
     return (

@@ -1,0 +1,339 @@
+
+/* Dot shown beside unread notifications */
+.notification-unread-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: #0754A0;
+}
+
+/* Welcome heading and admin role area */
+.admin-welcome {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 35px;
+}
+
+.admin-welcome h1 {
+    font-size: 27px;
+    color: #062C63;
+    margin-bottom: 7px;
+}
+
+.admin-welcome p {
+    color: #75869B;
+    font-size: 14px;
+}
+
+.admin-role-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #E5F2FF;
+    color: #0754A0;
+    padding: 10px 15px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Section headings and descriptions */
+.admin-section-heading {
+    margin-bottom: 20px;
+}
+
+.admin-section-heading h2,
+.admin-panel h2 {
+    font-size: 19px;
+    color: #062C63;
+}
+
+.admin-section-heading p,
+.admin-panel > p {
+    font-size: 12px;
+    color: #8495A9;
+    margin-top: 5px;
+}
+
+/* Error message for dashboard statistics */
+.admin-stat-error {
+    color: #DC2626;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+/* Status badges used in technician lists */
+.admin-status-badge {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.admin-status-badge.pending {
+    background: #FFF3CD;
+    color: #856404;
+}
+
+.admin-status-badge.approved {
+    background: #D4EDDA;
+    color: #155724;
+}
+
+.admin-status-badge.rejected {
+    background: #F8D7DA;
+    color: #721C24;
+}
+
+.admin-status-badge.in-progress {
+    background: #DBEAFE;
+    color: var(--gc-dark-blue);
+}
+
+/* Dashboard statistics grid */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+/* Statistics card appearance */
+.admin-stat-card {
+    min-height: 155px;
+    background: #FFFFFF;
+    padding: 22px 18px;
+    border-radius: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    border-bottom: 3px solid #FFD600;
+}
+
+/* Statistics card icon */
+.admin-stat-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #E5F2FF;
+    color: #0754A0;
+    border-radius: 12px;
+}
+
+/* Statistics card title and description */
+.admin-stat-info h3 {
+    font-size: 13px;
+    color: #526B87;
+    margin-bottom: 7px;
+}
+
+.admin-stat-info p {
+    font-size: 11px;
+    color: #929EAC;
+    line-height: 1.5;
+}
+
+.admin-stat-info span {
+    display: inline-block;
+    margin-top: 12px;
+    color: #0754A0;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Main number displayed in a statistics card */
+.admin-stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--gc-dark-blue);
+    margin-top: 8px;
+    line-height: 1.2;
+}
+
+/* Main dashboard panel */
+.admin-panel {
+    min-height: 300px;
+    padding: 24px;
+    border-radius: 14px;
+    background: #FFFFFF;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+/* Button used to view a record */
+.admin-view-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--gc-blue);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.admin-view-button:hover {
+    background: var(--gc-dark-blue);
+}
+
+/* Animation used when orders appear */
+@keyframes ordersFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading spinner animation for orders */
+@keyframes ordersSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animation for the order details modal */
+@keyframes ordersModalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Dashboard layout */
+.admin-dashboard {
+    min-height: 100vh;
+    display: flex;
+    background: var(--gc-background);
+    color: var(--gc-text);
+}
+
+/* Tablet layout adjustments */
+@media (max-width: 1100px) {
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Responsive dashboard layout */
+@media (max-width: 768px) {
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .admin-modal {
+        max-width: 100%;
+        padding: 20px;
+    }
+}
+
+/* Mobile layout adjustments */
+@media (max-width: 600px) {
+    .admin-welcome {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-welcome h1 {
+        font-size: 21px;
+    }
+
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-panel {
+        padding: 18px;
+    }
+}
+
+/* Small mobile layout adjustments */
+@media (max-width: 480px) {
+    .admin-modal-actions {
+        flex-direction: column;
+    }
+}
+
+/* Dark theme styles for dashboard headings */
+:root[data-theme="dark"] .admin-welcome h1,
+:root[data-theme="dark"] .admin-section-heading h2,
+:root[data-theme="dark"] .admin-panel h2 {
+    color: #8FC5FF;
+}
+
+/* Dark theme text colors */
+:root[data-theme="dark"] .admin-welcome p,
+:root[data-theme="dark"] .admin-section-heading p,
+:root[data-theme="dark"] .admin-panel > p {
+    color: var(--gc-muted);
+}
+
+/* Dark theme admin role label */
+:root[data-theme="dark"] .admin-role-label {
+    background: #203B5D;
+    color: #A9D3FF;
+}
+
+/* Dark theme statistics cards */
+:root[data-theme="dark"] .admin-stat-card {
+    background: var(--gc-surface);
+    border-color: var(--gc-yellow);
+    box-shadow: var(--gc-shadow);
+}
+
+:root[data-theme="dark"] .admin-stat-info h3 {
+    color: var(--gc-text);
+}
+
+:root[data-theme="dark"] .admin-stat-info p,
+:root[data-theme="dark"] .admin-stat-info span {
+    color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-stat-value {
+    color: #FFD600;
+}
+
+:root[data-theme="dark"] .admin-stat-icon {
+    background: #263D5C;
+    color: #8FC5FF;
+}
+
+/* Dark theme dashboard panels */
+:root[data-theme="dark"] .admin-panel {
+    background: var(--gc-surface);
+    box-shadow: var(--gc-shadow);
+}
+
+/* Dark theme modal */
+:root[data-theme="dark"] .admin-modal {
+    background: var(--gc-surface);
+    color: var(--gc-text);
+    border-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .admin-dashboard {
+    background: var(--gc-background);
+    color: var(--gc-text);
+}

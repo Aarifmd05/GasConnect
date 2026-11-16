@@ -1,0 +1,339 @@
+/* Styles used by the Admin Topbar component. */
+
+.admin-topbar {
+height: 85px;
+    background: #FFFFFF;
+    padding: 0 35px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-menu-toggle {
+display: none;
+    background: transparent;
+    border: none;
+    color: #062C63;
+}
+
+.admin-search {
+width: 330px;
+    height: 43px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 15px;
+    border-radius: 9px;
+    background: #F1F5FA;
+    color: #52749B;
+}
+
+.admin-search input {
+flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--gc-text);
+}
+
+.admin-topbar-right {
+display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.admin-notification {
+background: transparent;
+    border: none;
+    color: #0754A0;
+}
+
+.admin-profile {
+display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #0754A0;
+}
+
+.admin-profile h4 {
+font-size: 13px;
+}
+
+.admin-profile p {
+font-size: 11px;
+    color: #8495A9;
+}
+
+@media (max-width: 800px) {
+.admin-menu-toggle {
+display: flex;
+}
+
+.admin-topbar {
+padding: 0 18px;
+        gap: 15px;
+}
+
+.admin-search {
+flex: 1;
+        width: auto;
+}
+}
+
+@media (max-width: 600px) {
+.admin-topbar {
+height: 70px;
+}
+
+.admin-profile h4,
+.admin-profile p {
+display: none;
+}
+
+.admin-topbar-right {
+gap: 12px;
+}
+}
+
+:root[data-theme="dark"] .admin-topbar {
+background: var(--gc-header-background);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="dark"] .admin-menu-toggle,
+:root[data-theme="dark"] .admin-notification,
+:root[data-theme="dark"] .admin-profile {
+color: #8FC5FF;
+}
+
+:root[data-theme="dark"] .admin-profile p {
+color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-search {
+background: var(--gc-surface-secondary);
+    color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-search input {
+background: transparent;
+    color: var(--gc-text);
+}
+
+.topbar-notification-wrapper {
+position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.admin-topbar .topbar-icon-btn {
+position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.admin-topbar .topbar-icon-btn:hover {
+background: #EAF3FF;
+}
+
+.topbar-notification-count {
+position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    background: #E53935;
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.topbar-notification-dropdown {
+position: absolute;
+    top: 52px;
+    right: 0;
+    width: 360px;
+    max-width: calc(100vw - 30px);
+    background: #FFFFFF;
+    border: 1px solid #E5EAF1;
+    border-radius: 12px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.notification-dropdown-header {
+display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px;
+    border-bottom: 1px solid #E8EDF3;
+    color: #0754A0;
+}
+
+.notification-dropdown-header h3 {
+margin: 0 0 5px;
+    font-size: 16px;
+}
+
+.notification-dropdown-header span {
+color: #8495A9;
+    font-size: 12px;
+}
+
+.notification-dropdown-list {
+max-height: 350px;
+    overflow-y: auto;
+}
+
+.notification-dropdown-item {
+width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    border: none;
+    border-bottom: 1px solid #EDF0F4;
+    background: #FFFFFF;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.notification-dropdown-item:hover {
+background: #F3F7FC;
+}
+
+.notification-dropdown-item.unread {
+background: #EFF6FF;
+}
+
+.notification-dropdown-icon {
+width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #E0EFFF;
+    color: #0754A0;
+}
+
+.notification-dropdown-content {
+flex: 1;
+    min-width: 0;
+}
+
+.notification-dropdown-content strong {
+display: block;
+    margin-bottom: 5px;
+    color: #17365D;
+    font-size: 13px;
+}
+
+.notification-dropdown-content p {
+margin: 0 0 6px;
+    color: #64748B;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.notification-dropdown-content small {
+color: #94A3B8;
+    font-size: 11px;
+}
+
+.notification-dropdown-empty {
+min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #94A3B8;
+}
+
+.notification-dropdown-empty p {
+margin: 0;
+    font-size: 13px;
+}
+
+.notification-view-all {
+width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px;
+    border: none;
+    border-top: 1px solid #E8EDF3;
+    background: #FFFFFF;
+    color: #0754A0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.notification-view-all:hover {
+background: #F1F6FC;
+}
+
+:root[data-theme="dark"] .topbar-notification-dropdown {
+background: var(--gc-surface);
+    border-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .notification-dropdown-header,
+:root[data-theme="dark"] .notification-view-all {
+background: var(--gc-surface);
+    color: #8FC5FF;
+    border-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .notification-dropdown-item {
+background: var(--gc-surface);
+    border-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .notification-dropdown-item.unread,
+:root[data-theme="dark"] .notification-dropdown-item:hover {
+background: var(--gc-surface-secondary);
+}
+
+:root[data-theme="dark"] .notification-dropdown-content strong {
+color: var(--gc-text);
+}
+
+:root[data-theme="dark"] .notification-dropdown-content p,
+:root[data-theme="dark"] .notification-dropdown-content small {
+color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .notification-dropdown-empty {
+color: var(--gc-muted);
+}
+
+@media (max-width: 480px) {
+.topbar-notification-dropdown {
+position: fixed;
+        top: 75px;
+        right: 10px;
+        width: calc(100vw - 20px);
+        max-width: none;
+}
+}
