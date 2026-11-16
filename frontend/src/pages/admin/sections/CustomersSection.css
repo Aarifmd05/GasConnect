@@ -1,0 +1,102 @@
+/* Styles used by the Customers component. */
+
+.admin-customer-table-wrapper {
+width: 100%;
+    overflow-x: auto;
+    background: #FFFFFF;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-customer-table {
+width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.admin-customer-table th,
+.admin-customer-table td {
+padding: 17px 20px;
+    text-align: left;
+    border-bottom: 1px solid #E8EDF3;
+    font-size: 14px;
+}
+
+.admin-customer-table th {
+background: #0754A0;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.admin-customer-table td {
+color: #333333;
+}
+
+.admin-customer-table tbody tr:hover {
+background: var(--gc-background);
+}
+
+.admin-customer-table tbody tr:last-child td {
+border-bottom: none;
+}
+
+.admin-customer-message {
+min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    color: #0754A0;
+    margin-top: 20px;
+    text-align: center;
+    padding: 25px;
+}
+
+.admin-customer-message h3,
+.admin-customer-message p {
+margin: 0;
+}
+
+.admin-customer-message p {
+color: #777777;
+    font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+.admin-customer-table-wrapper {
+overflow-x: auto;
+        width: 100%;
+}
+}
+
+:root[data-theme="dark"] .admin-customer-table-wrapper {
+background: var(--gc-surface);
+    box-shadow: var(--gc-shadow);
+}
+
+:root[data-theme="dark"] .admin-customer-table td {
+color: var(--gc-text);
+    border-bottom-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .admin-customer-table th {
+background: #0754A0;
+    color: #FFFFFF;
+}
+
+:root[data-theme="dark"] .admin-customer-table tbody tr:hover {
+background: var(--gc-surface-secondary);
+}
+
+:root[data-theme="dark"] .admin-customer-message {
+background: var(--gc-surface);
+    color: #8FC5FF;
+}
+
+:root[data-theme="dark"] .admin-customer-message p {
+color: var(--gc-muted);
+}

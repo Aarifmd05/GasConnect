@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 
+import './ProductsSection.css';
 import {
     Package,
     AlertCircle,

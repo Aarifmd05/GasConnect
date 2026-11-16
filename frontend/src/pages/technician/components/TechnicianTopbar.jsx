@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import './TechnicianTopbar.css';
 import {
     Menu,
     Bell,

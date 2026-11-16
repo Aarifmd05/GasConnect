@@ -205,11 +205,11 @@ function AdminLogin() {
                 )}
 
                 {/* Forgot Password */}
-<div className="admin-login-options">
-    <Link to="/admin/forgot-password">
-        Forgot Password?
-    </Link>
-</div>
+                <div className="admin-login-options">
+                    <Link to="/admin/forgot-password">
+                        Forgot Password?
+                    </Link>
+                </div>
 
                 {/* Loading */}
                 {loading && (

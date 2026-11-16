@@ -1,5 +1,15 @@
 
 import { useState, useEffect } from 'react';
+import useAdminNotifications from './hooks/useAdminNotifications';
+import {
+    filterBookings,
+    filterCustomers,
+    filterTechnicians,
+    formatDate,
+    formatDateTime,
+    getStatusClass,
+    getBookingStatusClass
+} from './utils/adminHelpers';
 import {
     LayoutDashboard,
     Users,
@@ -26,6 +36,7 @@ import {
 
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './AdminShared.css';
 import './AdminDashboard.css';
 import AdminSidebar from './components/AdminSidebar';
 import AdminTopbar from './components/AdminTopbar';
@@ -50,20 +61,12 @@ function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Admin notification states
-const ADMIN_READ_KEY = 'gasconnect_admin_read_notifications';
-
-const [notifications, setNotifications] = useState([]);
-
-const [readNotifications, setReadNotifications] = useState(() => {
-    try {
-        return JSON.parse(
-            sessionStorage.getItem(ADMIN_READ_KEY) || '[]'
-        );
-    } catch {
-        return [];
-    }
-});
+    const {
+        notifications,
+        readNotifications,
+        unreadNotificationCount,
+        markAdminNotificationAsRead
+    } = useAdminNotifications();
 
     // Dashboard statistics
     const [stats, setStats] = useState({
@@ -73,312 +76,169 @@ const [readNotifications, setReadNotifications] = useState(() => {
         totalBookings: 0
     });
 
-const handleInvoiceDownload = async (orderId, action = 'download') => {
-    let invoiceWindow = null;
+    const handleInvoiceDownload = async (orderId, action = 'download') => {
+        let invoiceWindow = null;
 
-    try {
-        // Open a blank tab immediately for PDF viewing
-        if (action === 'view') {
-            invoiceWindow = window.open('', '_blank');
+        try {
+            // Open a blank tab immediately for PDF viewing
+            if (action === 'view') {
+                invoiceWindow = window.open('', '_blank');
 
-            if (!invoiceWindow) {
-                alert('Please allow pop-ups to view the invoice.');
+                if (!invoiceWindow) {
+                    alert('Please allow pop-ups to view the invoice.');
+                    return;
+                }
+            }
+
+            const token = getToken();
+
+            if (!token) {
+                if (invoiceWindow) invoiceWindow.close();
+                navigate('/admin/login');
                 return;
             }
-        }
 
-        const token = getToken();
+            const response = await axios.get(
+                `http://localhost:3006/api/orders/${orderId}/invoice`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                    responseType: 'blob'
+                }
+            );
 
-if (!token) {
-            if (invoiceWindow) invoiceWindow.close();
-            navigate('/admin/login');
-            return;
-        }
+            const pdfBlob = new Blob([response.data], {
+                type: 'application/pdf'
+            });
 
-        const response = await axios.get(
-            `http://localhost:3006/api/orders/${orderId}/invoice`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                },
-                responseType: 'blob'
+            const pdfUrl = window.URL.createObjectURL(pdfBlob);
+
+            if (action === 'view') {
+                invoiceWindow.location.href = pdfUrl;
+            } else {
+                const link = document.createElement('a');
+                link.href = pdfUrl;
+                link.download = 'GasConnect-Invoice.pdf';
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
-        );
 
-        const pdfBlob = new Blob([response.data], {
-            type: 'application/pdf'
-        });
+            setTimeout(() => {
+                window.URL.revokeObjectURL(pdfUrl);
+            }, 60000);
 
-        const pdfUrl = window.URL.createObjectURL(pdfBlob);
+        } catch (error) {
+            if (invoiceWindow) {
+                invoiceWindow.close();
+            }
 
-        if (action === 'view') {
-            invoiceWindow.location.href = pdfUrl;
-        } else {
-            const link = document.createElement('a');
-            link.href = pdfUrl;
-            link.download = 'GasConnect-Invoice.pdf';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            console.error('Invoice Error:', error);
+            alert('Unable to retrieve invoice. Please try again.');
         }
-
-        setTimeout(() => {
-            window.URL.revokeObjectURL(pdfUrl);
-        }, 60000);
-
-    } catch (error) {
-        if (invoiceWindow) {
-            invoiceWindow.close();
-        }
-
-        console.error('Invoice Error:', error);
-        alert('Unable to retrieve invoice. Please try again.');
-    }
-};
+    };
 
     // Fetch all customer orders
-const fetchOrders = async () => {
-    setOrdersLoading(true);
-    setOrdersError('');
+    const fetchOrders = async () => {
+        setOrdersLoading(true);
+        setOrdersError('');
 
-    try {
-        const token = getToken();
+        try {
+            const token = getToken();
 
-        if (!token) {
-            navigate('/admin/login');
-            return;
-        }
+            if (!token) {
+                navigate('/admin/login');
+                return;
+            }
 
-        const response = await axios.get(
-            'http://localhost:3006/api/orders/admin/all',
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
+            const response = await axios.get(
+                'http://localhost:3006/api/orders/admin/all',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
-            }
-        );
+            );
 
-        setOrders(response.data.orders || []);
-    } catch (error) {
-        console.error('Error fetching orders:', error);
+            setOrders(response.data.orders || []);
+        } catch (error) {
+            console.error('Error fetching orders:', error);
 
-        if (handleAuthError(error)) return;
+            if (handleAuthError(error)) return;
 
-        setOrdersError(
-            error.response?.data?.message ||
-            'Unable to load customer orders. Please try again.'
-        );
-    } finally {
-        setOrdersLoading(false);
-    }
-};
+            setOrdersError(
+                error.response?.data?.message ||
+                'Unable to load customer orders. Please try again.'
+            );
+        } finally {
+            setOrdersLoading(false);
+        }
+    };
 
-// ==========================================
-// ADMIN NOTIFICATIONS
-// ==========================================
+    // ==========================================
+    // ADMIN NOTIFICATIONS
+    // ==========================================
 
-const fetchAdminNotifications = async () => {
-    try {
-        const token = getToken();
-
-        if (!token) return;
-
-        const headers = {
-            Authorization: `Bearer ${token}`
-        };
-
-        const [bookingResponse, technicianResponse] = await Promise.all([
-            axios.get(
-                'http://localhost:3006/api/bookings/admin/all',
-                { headers }
-            ),
-
-            axios.get(
-                'http://localhost:3006/api/users/admin/technicians',
-                { headers }
-            )
-        ]);
-
-        const allBookings = bookingResponse.data.bookings || [];
-        const allTechnicians = technicianResponse.data.technicians || [];
-
-        // Booking notifications
-        const bookingNotifications = allBookings.map((booking) => {
-            const status = booking.status || 'pending';
-
-            let title = 'Booking Status Updated';
-            let message = `Booking for ${
-                booking.customer?.name || 'a customer'
-            } has been updated.`;
-
-            if (status === 'pending') {
-                title = 'New Booking Received';
-                message = `New ${
-                    booking.repairType?.name || 'service'
-                } booking received from ${
-                    booking.customer?.name || 'a customer'
-                }.`;
-            } else if (status === 'assigned') {
-                title = 'Technician Assigned';
-                message = `A technician has been assigned to ${
-                    booking.customer?.name || 'a customer'
-                }'s booking.`;
-            } else if (status === 'accepted') {
-                title = 'Booking Accepted';
-                message = 'A technician has accepted a booking.';
-            } else if (
-                status === 'in-progress' ||
-                status === 'in_progress'
-            ) {
-                title = 'Work In Progress';
-                message = 'A service booking is now in progress.';
-            } else if (status === 'completed') {
-                title = 'Booking Completed';
-                message = 'A service booking has been completed.';
-            } else if (status === 'cancelled') {
-                title = 'Booking Cancelled';
-                message = 'A service booking has been cancelled.';
-            }
-
-            return {
-                id: `booking-${booking._id}-${status}`,
-                title,
-                message,
-                date: booking.updatedAt || booking.createdAt,
-                type: 'booking',
-                bookingId: booking._id
-            };
-        });
-
-        // Pending technician registration notifications
-        const technicianNotifications = allTechnicians
-            .filter(
-                (technician) =>
-                    technician.approvalStatus === 'pending'
-            )
-            .map((technician) => ({
-                id: `technician-${technician._id}-pending`,
-                title: 'Technician Approval Pending',
-                message: `${
-                    technician.name || 'A technician'
-                } is waiting for account approval.`,
-                date: technician.createdAt || technician.updatedAt,
-                type: 'technician',
-                technicianId: technician._id
-            }));
-
-        const combinedNotifications = [
-            ...bookingNotifications,
-            ...technicianNotifications
-        ].sort(
-            (a, b) =>
-                new Date(b.date || 0) - new Date(a.date || 0)
-        );
-
-        setNotifications(combinedNotifications);
-
-    } catch (error) {
-        console.error(
-            'Admin notification error:',
-            error.response?.data || error.message
-        );
-    }
-};
-
-const handleAdminNotificationClick = (notification) => {
-    if (notification.type === 'technician') {
-        setActiveMenu('Technicians');
-    } else if (notification.type === 'booking') {
-        setActiveMenu('Bookings');
-    }
-
-    setSearchTerm('');
-    setSidebarOpen(false);
-};
-
-// Fetch notifications when Admin dashboard opens
-useEffect(() => {
-    fetchAdminNotifications();
-
-    const interval = setInterval(() => {
-        fetchAdminNotifications();
-    }, 30000);
-
-    return () => clearInterval(interval);
-}, []);
-
-// Mark notification as read
-const markAdminNotificationAsRead = (notificationId) => {
-    setReadNotifications((previous) => {
-        if (previous.includes(notificationId)) {
-            return previous;
+    const handleAdminNotificationClick = (notification) => {
+        if (notification.type === 'technician') {
+            setActiveMenu('Technicians');
+        } else if (notification.type === 'booking') {
+            setActiveMenu('Bookings');
         }
 
-        const updated = [...previous, notificationId];
+        setSearchTerm('');
+        setSidebarOpen(false);
+    };
 
-        sessionStorage.setItem(
-            ADMIN_READ_KEY,
-            JSON.stringify(updated)
+    // Update customer order status
+    const handleOrderStatusUpdate = async (orderId, orderStatus) => {
+        const confirmed = window.confirm(
+            `Are you sure you want to change this order status to ${orderStatus}?`
         );
 
-        return updated;
-    });
-};
+        if (!confirmed) return;
 
-// Calculate unread notification count
-const unreadNotificationCount = notifications.filter(
-    (notification) =>
-        !readNotifications.includes(notification.id)
-).length;
-     
-     // Update customer order status
-const handleOrderStatusUpdate = async (orderId, orderStatus) => {
-    const confirmed = window.confirm(
-        `Are you sure you want to change this order status to ${orderStatus}?`
-    );
+        try {
+            const token = getToken();
 
-    if (!confirmed) return;
+            if (!token) {
+                navigate('/admin/login');
+                return;
+            }
 
-    try {
-        const token = getToken();
-
-        if (!token) {
-            navigate('/admin/login');
-            return;
-        }
-
-        const response = await axios.put(
-            `http://localhost:3006/api/orders/admin/${orderId}/status`,
-            { orderStatus },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
+            const response = await axios.put(
+                `http://localhost:3006/api/orders/admin/${orderId}/status`,
+                { orderStatus },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
+            );
+
+            await fetchOrders();
+
+            // Refresh inventory when an order is cancelled
+            if (orderStatus === 'CANCELLED') {
+                await fetchProducts();
             }
-        );
 
-        await fetchOrders();
+            window.alert(
+                response.data.message || 'Order status updated successfully.'
+            );
+        } catch (error) {
+            console.error('Error updating order status:', error);
 
-        // Refresh inventory when an order is cancelled
-        if (orderStatus === 'CANCELLED') {
-            await fetchProducts();
+            if (handleAuthError(error)) return;
+
+            window.alert(
+                error.response?.data?.message ||
+                'Unable to update order status.'
+            );
         }
-
-        window.alert(
-            response.data.message || 'Order status updated successfully.'
-        );
-    } catch (error) {
-        console.error('Error updating order status:', error);
-
-        if (handleAuthError(error)) return;
-
-        window.alert(
-            error.response?.data?.message ||
-            'Unable to update order status.'
-        );
-    }
-};
+    };
 
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState('');
@@ -434,7 +294,7 @@ const handleOrderStatusUpdate = async (orderId, orderStatus) => {
     const [reviewsLoading, setReviewsLoading] = useState(false);
     const [reviewsError, setReviewsError] = useState('');
 
-       // Orders Management
+    // Orders Management
     const [orders, setOrders] = useState([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [ordersError, setOrdersError] = useState('');
@@ -529,10 +389,10 @@ const handleOrderStatusUpdate = async (orderId, orderStatus) => {
     }, [activeMenu]);
 
     useEffect(() => {
-    if (activeMenu === 'Orders') {
-        fetchOrders();
-    }
-}, [activeMenu]);
+        if (activeMenu === 'Orders') {
+            fetchOrders();
+        }
+    }, [activeMenu]);
 
     // Fetch technicians
     const fetchTechnicians = async () => {
@@ -617,54 +477,54 @@ const handleOrderStatusUpdate = async (orderId, orderStatus) => {
         }
     };
 
-    
-const handleDeleteTechnician = async (technician) => {
-    const confirmed = window.confirm(
-        `Are you sure you want to permanently delete ${technician.name}'s account?\n\nTheir login credentials and profile will be deleted. This action cannot be undone.`
-    );
 
-    if (!confirmed) return;
+    const handleDeleteTechnician = async (technician) => {
+        const confirmed = window.confirm(
+            `Are you sure you want to permanently delete ${technician.name}'s account?\n\nTheir login credentials and profile will be deleted. This action cannot be undone.`
+        );
 
-    setDeletingTechnician(technician._id);
+        if (!confirmed) return;
 
-    try {
-        const token = getToken();
+        setDeletingTechnician(technician._id);
 
-        if (!token) {
-            navigate('/admin/login');
-            return;
-        }
+        try {
+            const token = getToken();
 
-        const response = await axios.delete(
-            `http://localhost:3006/api/users/admin/technicians/${technician._id}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            if (!token) {
+                navigate('/admin/login');
+                return;
             }
-        );
 
-        await fetchTechnicians();
-        await fetchDashboardStats();
+            const response = await axios.delete(
+                `http://localhost:3006/api/users/admin/technicians/${technician._id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
-        window.alert(
-            response.data.message || 'Technician deleted successfully!'
-        );
+            await fetchTechnicians();
+            await fetchDashboardStats();
 
-    } catch (error) {
-        console.error('Delete technician error:', error);
+            window.alert(
+                response.data.message || 'Technician deleted successfully!'
+            );
 
-        if (handleAuthError(error)) return;
+        } catch (error) {
+            console.error('Delete technician error:', error);
 
-        window.alert(
-            error.response?.data?.message ||
-            'Unable to delete technician. Please try again.'
-        );
+            if (handleAuthError(error)) return;
 
-    } finally {
-        setDeletingTechnician('');
-    }
-};
+            window.alert(
+                error.response?.data?.message ||
+                'Unable to delete technician. Please try again.'
+            );
+
+        } finally {
+            setDeletingTechnician('');
+        }
+    };
 
 
     // Fetch all bookings for admin
@@ -807,7 +667,7 @@ const handleDeleteTechnician = async (technician) => {
                 error.code === 'ECONNABORTED'
                     ? 'Request timed out. Please check your backend server.'
                     : error.response?.data?.message ||
-                      'Unable to load service categories. Please try again.'
+                    'Unable to load service categories. Please try again.'
             );
 
         } finally {
@@ -1412,134 +1272,68 @@ const handleDeleteTechnician = async (technician) => {
     // BOOKING ASSIGNMENT
     // ==========================================
 
-    
-const handleAssignTechnician = async (bookingId, technicianId = null) => {
-    try {
-        setAssigningBooking(bookingId);
 
-        const token = getToken();
+    const handleAssignTechnician = async (bookingId, technicianId = null) => {
+        try {
+            setAssigningBooking(bookingId);
 
-        if (!token) {
-            navigate('/admin/login');
-            return;
-        }
+            const token = getToken();
 
-        const response = await fetch(
-            `http://localhost:3006/api/bookings/admin/assign/${bookingId}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(
-                    technicianId ? { technicianId } : {}
-                )
+            if (!token) {
+                navigate('/admin/login');
+                return;
             }
-        );
 
-        const data = await response.json();
+            const response = await fetch(
+                `http://localhost:3006/api/bookings/admin/assign/${bookingId}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify(
+                        technicianId ? { technicianId } : {}
+                    )
+                }
+            );
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Assignment failed.');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Assignment failed.');
+            }
+
+            window.alert(
+                data.message ||
+                (technicianId
+                    ? 'Technician assigned successfully!'
+                    : 'Booking published to all technicians!')
+            );
+
+            setSelectedTechnicians(prev => ({
+                ...prev,
+                [bookingId]: ''
+            }));
+
+            await fetchBookings();
+
+        } catch (error) {
+            console.error('Booking assignment error:', error);
+            window.alert(error.message || 'Failed to assign booking.');
+        } finally {
+            setAssigningBooking('');
         }
-
-        window.alert(
-            data.message ||
-            (technicianId
-                ? 'Technician assigned successfully!'
-                : 'Booking published to all technicians!')
-        );
-
-        setSelectedTechnicians(prev => ({
-            ...prev,
-            [bookingId]: ''
-        }));
-
-        await fetchBookings();
-
-    } catch (error) {
-        console.error('Booking assignment error:', error);
-        window.alert(error.message || 'Failed to assign booking.');
-    } finally {
-        setAssigningBooking('');
-    }
-};
+    };
 
 
     // ==========================================
     // FILTERING AND HELPER FUNCTIONS
     // ==========================================
 
-    const filteredBookings = bookings.filter((booking) => {
-        const search = searchTerm.toLowerCase();
-
-        return (
-            booking.customer?.name?.toLowerCase().includes(search) ||
-            booking.customer?.email?.toLowerCase().includes(search) ||
-            booking.customer?.phone?.toString().includes(search) ||
-            booking.repairType?.name?.toLowerCase().includes(search) ||
-            booking.status?.toLowerCase().includes(search) ||
-            booking.address?.toLowerCase().includes(search) ||
-            booking.technician?.name?.toLowerCase().includes(search)
-        );
-    });
-
-    const filteredCustomers = customers.filter((customer) => {
-        const search = searchTerm.toLowerCase();
-
-        return (
-            customer.name?.toLowerCase().includes(search) ||
-            customer.email?.toLowerCase().includes(search) ||
-            customer.phone?.toString().includes(search)
-        );
-    });
-
-    const filteredTechnicians = technicians.filter((technician) => {
-        const search = searchTerm.toLowerCase();
-
-        return (
-            technician.name?.toLowerCase().includes(search) ||
-            technician.email?.toLowerCase().includes(search) ||
-            technician.phone?.toString().includes(search) ||
-            technician.specialization?.toLowerCase().includes(search)
-        );
-    });
-
-    const formatDate = (date) => {
-        if (!date) return 'N/A';
-
-        return new Date(date).toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
-    };
-
-    const formatDateTime = (date) => {
-        if (!date) return 'N/A';
-
-        return new Date(date).toLocaleString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const getStatusClass = (status) => {
-        if (status === 'approved') return 'approved';
-        if (status === 'rejected') return 'rejected';
-        return 'pending';
-    };
-
-    const getBookingStatusClass = (status) => {
-        if (status === 'completed' || status === 'accepted') return 'approved';
-        if (status === 'rejected' || status === 'cancelled') return 'rejected';
-        if (status === 'in-progress') return 'in-progress';
-        return 'pending';
-    };
+    const filteredBookings = filterBookings(bookings, searchTerm);
+    const filteredCustomers = filterCustomers(customers, searchTerm);
+    const filteredTechnicians = filterTechnicians(technicians, searchTerm);
 
     // ==========================================
     // SIDEBAR MENU AND DASHBOARD DATA
@@ -1588,32 +1382,32 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
     };
 
     return (
-    <div className="admin-dashboard">
+        <div className="admin-dashboard">
 
-        {/* Admin Sidebar */}
-        <AdminSidebar
-            activeMenu={activeMenu}
-            onMenuClick={handleMenuClick}
-            sidebarOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-            onLogout={handleLogout}
-        />
-{/* Main Section */}
+            {/* Admin Sidebar */}
+            <AdminSidebar
+                activeMenu={activeMenu}
+                onMenuClick={handleMenuClick}
+                sidebarOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+                onLogout={handleLogout}
+            />
+            {/* Main Section */}
             <main className="admin-main">
 
                 {/* Topbar */}
                 <AdminTopbar
-    activeMenu={activeMenu}
-    sidebarOpen={sidebarOpen}
-    onMenuToggle={() => setSidebarOpen((prev) => !prev)}
-    searchTerm={searchTerm}
-    setSearchTerm={setSearchTerm}
-    notifications={notifications}
-    readNotifications={readNotifications}
-    unreadCount={unreadNotificationCount}
-    markAsRead={markAdminNotificationAsRead}
-    onNotificationClick={handleAdminNotificationClick}
-/>
+                    activeMenu={activeMenu}
+                    sidebarOpen={sidebarOpen}
+                    onMenuToggle={() => setSidebarOpen((prev) => !prev)}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    notifications={notifications}
+                    readNotifications={readNotifications}
+                    unreadCount={unreadNotificationCount}
+                    markAsRead={markAdminNotificationAsRead}
+                    onNotificationClick={handleAdminNotificationClick}
+                />
 
                 {/* Dashboard Content */}
                 <section className="admin-content">
@@ -1724,17 +1518,17 @@ const handleAssignTechnician = async (bookingId, technicianId = null) => {
                     )}
 
                     {/* Orders Section */}
-{activeMenu === 'Orders' && (
-    <OrdersSection
-        orders={orders}
-        ordersLoading={ordersLoading}
-        ordersError={ordersError}
-        fetchOrders={fetchOrders}
-        handleOrderStatusUpdate={handleOrderStatusUpdate}
-        handleInvoiceDownload={handleInvoiceDownload}
-        searchTerm={searchTerm}
-    />
-)}
+                    {activeMenu === 'Orders' && (
+                        <OrdersSection
+                            orders={orders}
+                            ordersLoading={ordersLoading}
+                            ordersError={ordersError}
+                            fetchOrders={fetchOrders}
+                            handleOrderStatusUpdate={handleOrderStatusUpdate}
+                            handleInvoiceDownload={handleInvoiceDownload}
+                            searchTerm={searchTerm}
+                        />
+                    )}
 
                     {/* Reviews Section */}
                     {activeMenu === 'Reviews' && (

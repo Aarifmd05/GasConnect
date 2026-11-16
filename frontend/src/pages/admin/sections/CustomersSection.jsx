@@ -1,3 +1,4 @@
+import './CustomersSection.css';
 
 import {
     Users,

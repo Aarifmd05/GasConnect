@@ -347,9 +347,8 @@ const CustomerDashboard = () => {
 
       {isMobile && (
         <div
-          className={`customer-sidebar-overlay ${
-            mobileSidebarOpen ? 'show' : ''
-          }`}
+          className={`customer-sidebar-overlay ${mobileSidebarOpen ? 'show' : ''
+            }`}
           onClick={closeMobileSidebar}
           aria-hidden="true"
         />
@@ -358,11 +357,10 @@ const CustomerDashboard = () => {
       {/* MAIN CONTENT */}
 
       <main
-        className={`customer-main ${
-          !isMobile && !desktopSidebarOpen
-            ? 'sidebar-collapsed'
-            : ''
-        }`}
+        className={`customer-main ${!isMobile && !desktopSidebarOpen
+          ? 'sidebar-collapsed'
+          : ''
+          }`}
       >
 
         {/* TOPBAR */}

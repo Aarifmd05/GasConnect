@@ -1,0 +1,236 @@
+/* Styles used by the Reviews component. */
+
+:root[data-theme="dark"] .admin-review-distribution h2 {
+color: #8FC5FF;
+}
+
+:root[data-theme="dark"] .admin-review-comment,
+:root[data-theme="dark"] .admin-review-rating span:last-child,
+:root[data-theme="dark"] .admin-review-rating strong,
+:root[data-theme="dark"] .admin-review-details label {
+color: var(--gc-muted);
+}
+
+:root[data-theme="dark"] .admin-review-details-modal {
+background: var(--gc-surface);
+    color: var(--gc-text);
+    border-color: var(--gc-border);
+}
+
+.admin-reviews-page .admin-refresh-button {
+display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 11px 20px;
+    background: var(--gc-blue);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.admin-reviews-page .admin-refresh-button:hover {
+background: var(--gc-dark-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(7, 86, 165, 0.2);
+}
+
+.admin-reviews-page .admin-refresh-button:disabled {
+opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.admin-reviews-page .admin-stat-value {
+font-size: 36px;
+    font-weight: 800;
+    color: var(--gc-dark-blue);
+    line-height: 1.2;
+    margin-top: 12px;
+}
+
+.admin-reviews-page .admin-stat-card {
+padding: 25px;
+    min-height: 155px;
+}
+
+.admin-reviews-page .admin-stat-info {
+gap: 12px;
+}
+
+@media (max-width: 768px) {
+.admin-reviews-page .admin-stat-value {
+font-size: 30px;
+}
+}
+
+:root[data-theme="dark"] .admin-reviews-page .admin-stat-value {
+color: #FFD600;
+}
+
+.admin-reviews-page {
+width: 100%;
+}
+
+.admin-review-distribution {
+background: #fff;
+    padding: 24px;
+    margin: 25px 0;
+    border-radius: 15px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+.admin-review-distribution h2 {
+font-size: 18px;
+    color: var(--gc-dark-blue);
+    margin-bottom: 22px;
+}
+
+.admin-rating-row {
+display: grid;
+    grid-template-columns: 65px 1fr 35px;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    color: #53657b;
+    font-size: 14px;
+}
+
+.admin-rating-track {
+width: 100%;
+    height: 10px;
+    background: #e9edf3;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.admin-rating-fill {
+height: 100%;
+    background: #f59e0b;
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.admin-review-stars {
+display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.admin-review-rating {
+display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.admin-review-rating span:last-child,
+.admin-review-rating strong {
+font-size: 13px;
+    color: #53657b;
+}
+
+.admin-review-comment {
+max-width: 220px;
+    color: #64748b;
+}
+
+.admin-review-details-modal {
+max-width: 550px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.admin-review-modal-header {
+display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.admin-review-modal-header h2 {
+margin: 0;
+}
+
+.admin-review-modal-header button {
+border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.admin-review-details {
+display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.admin-review-details label {
+display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.admin-review-details p {
+color: var(--gc-dark-blue);
+    font-size: 14px;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.admin-review-full-comment {
+background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+.admin-rating-row {
+grid-template-columns: 55px 1fr 25px;
+        gap: 8px;
+}
+
+.admin-review-distribution {
+padding: 16px;
+}
+
+.admin-review-details-modal {
+width: 95%;
+}
+}
+
+:root[data-theme="dark"] .admin-review-distribution {
+background: var(--gc-surface);
+    box-shadow: var(--gc-shadow);
+}
+
+:root[data-theme="dark"] .admin-rating-row {
+color: var(--gc-text);
+}
+
+:root[data-theme="dark"] .admin-rating-track {
+background: #34445A;
+}
+
+:root[data-theme="dark"] .admin-review-details p {
+color: var(--gc-text);
+}
+
+:root[data-theme="dark"] .admin-review-full-comment {
+background: var(--gc-surface-secondary);
+    color: var(--gc-text);
+}
+
+:root[data-theme="dark"] .admin-review-modal-header button {
+color: var(--gc-muted);
+}

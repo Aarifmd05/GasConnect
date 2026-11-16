@@ -1,0 +1,115 @@
+/* Styles used by the ServiceCategories component. */
+
+:root[data-theme="dark"] .admin-category-table td {
+color: var(--gc-text);
+    border-bottom-color: var(--gc-border);
+}
+
+:root[data-theme="dark"] .admin-category-filter,
+:root[data-theme="dark"] .admin-products-toolbar-actions .admin-category-filter {
+background: var(--gc-input-background);
+    color: var(--gc-text);
+    border-color: var(--gc-border);
+}
+
+.admin-category-table {
+width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.admin-category-table th,
+.admin-category-table td {
+padding: 14px 16px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-category-table th:nth-child(1),
+.admin-category-table td:nth-child(1) {
+width: 7%;
+}
+
+.admin-category-table th:nth-child(2),
+.admin-category-table td:nth-child(2) {
+width: 17%;
+}
+
+.admin-category-table th:nth-child(3),
+.admin-category-table td:nth-child(3) {
+width: 35%;
+}
+
+.admin-category-table th:nth-child(4),
+.admin-category-table td:nth-child(4) {
+width: 17%;
+}
+
+.admin-category-table th:nth-child(5),
+.admin-category-table td:nth-child(5) {
+width: 24%;
+}
+
+.admin-category-table td:nth-child(2) {
+white-space: nowrap;
+}
+
+.admin-category-table td:nth-child(3) {
+overflow-wrap: anywhere;
+    line-height: 1.6;
+}
+
+.admin-category-filter {
+min-width: 190px;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #333333;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+.admin-category-filter:focus {
+border-color: #f59e0b;
+}
+
+.admin-category-filter {
+min-width: 190px;
+    padding: 10px 14px;
+    border: 1px solid #DDDDDD;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #333333;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+.admin-category-filter:focus {
+border-color: #F59E0B;
+}
+
+.admin-products-toolbar-actions .admin-category-filter {
+min-width: 190px;
+    height: 43px;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #333333;
+    font-size: 14px;
+}
+
+@media (max-width: 480px) {
+.admin-products-toolbar-actions .admin-category-filter {
+grid-column: 1 / -1;
+        width: 100%;
+}
+}
+
+.admin-products-toolbar-actions .admin-category-filter {
+min-width: 170px;
+    max-width: 200px;
+}
