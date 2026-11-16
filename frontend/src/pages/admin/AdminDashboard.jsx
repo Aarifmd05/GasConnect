@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import useAdminNotifications from "../../../hooks/useAdminNotifications";
+import useAdminNotifications from "../../hooks/useAdminNotifications";
 import {
     filterBookings,
     filterCustomers,
@@ -9,7 +9,7 @@ import {
     formatDateTime,
     getStatusClass,
     getBookingStatusClass
-} from "../../../utils/adminHelpers";
+} from "../../utils/adminHelpers";
 import {
     LayoutDashboard,
     Users,
