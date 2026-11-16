@@ -1,25 +1,18 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import mongoose from 'mongoose';
 import multer from 'multer';
-
 import User from '../models/User.js';
 import Booking from '../models/Booking.js';
 import RepairType from '../models/RepairType.js';
-import authMiddleware from '../middleware/authMiddleware.js';
-import uploadBookingPhoto from '../middleware/uploadBookingPhoto.js';
 
-const router = express.Router();
-
-
+// Shared helpers used by the route handlers.
 // ==========================================
 // POST - Customer creates a booking
 // ==========================================
-router.post(
-    '/',
-    authMiddleware,
-    uploadBookingPhoto.single('issuePhoto'),
-    async (req, res) => {
+
+// Handles POST /.
+export const createBooking = async (req, res) => {
         try {
             if (req.user.role !== 'customer') {
                 return res.status(403).json({
@@ -141,14 +134,10 @@ router.post(
                 message: error.message || 'Failed to create booking'
             });
         }
-    }
-);
+    };
 
-
-// ==========================================
-// GET - Customer views their bookings
-// ==========================================
-router.get('/my-bookings', authMiddleware, async (req, res) => {
+// Handles GET /my-bookings.
+export const getMyBookings = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -175,13 +164,10 @@ router.get('/my-bookings', authMiddleware, async (req, res) => {
             message: 'Failed to fetch bookings'
         });
     }
-});
+};
 
-
-// ==========================================
-// GET - Admin views all bookings
-// ==========================================
-router.get('/admin/all', authMiddleware, async (req, res) => {
+// Handles GET /admin/all.
+export const getAllBookingsForAdmin = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -208,13 +194,10 @@ router.get('/admin/all', authMiddleware, async (req, res) => {
             message: 'Failed to fetch bookings'
         });
     }
-});
+};
 
-
-// ==========================================
-// PUT - Admin publishes or directly assigns
-// ==========================================
-router.put('/admin/assign/:id', authMiddleware, async (req, res) => {
+// Handles PUT /admin/assign/:id.
+export const assignBookingToTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -268,7 +251,7 @@ router.put('/admin/assign/:id', authMiddleware, async (req, res) => {
                 $set: update
             },
             {
-                new: true,
+                 returnDocument: 'after',
                 runValidators: true
             }
         )
@@ -296,13 +279,10 @@ router.put('/admin/assign/:id', authMiddleware, async (req, res) => {
             message: 'Failed to assign booking'
         });
     }
-});
+};
 
-
-// ==========================================
-// PUT - Technician accepts or rejects booking
-// ==========================================
-router.put('/technician/respond/:id', authMiddleware, async (req, res) => {
+// Handles PUT /technician/respond/:id.
+export const respondToBookingAsTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
             return res.status(403).json({
@@ -348,7 +328,7 @@ router.put('/technician/respond/:id', authMiddleware, async (req, res) => {
                     }
                 },
                 {
-                    new: true
+                     returnDocument: 'after'
                 }
             );
 
@@ -368,7 +348,7 @@ router.put('/technician/respond/:id', authMiddleware, async (req, res) => {
                         }
                     },
                     {
-                        new: true
+                         returnDocument: 'after'
                     }
                 );
             }
@@ -406,7 +386,7 @@ router.put('/technician/respond/:id', authMiddleware, async (req, res) => {
                 }
             },
             {
-                new: true,
+                 returnDocument: 'after',
                 runValidators: true
             }
         );
@@ -426,7 +406,7 @@ router.put('/technician/respond/:id', authMiddleware, async (req, res) => {
                     }
                 },
                 {
-                    new: true,
+                     returnDocument: 'after',
                     runValidators: true
                 }
             );
@@ -474,14 +454,10 @@ router.put('/technician/respond/:id', authMiddleware, async (req, res) => {
             message: 'Failed to respond to booking'
         });
     }
-});
+};
 
-
-// ==========================================
-// GET - Technician views available jobs
-// and their own bookings
-// ==========================================
-router.get('/technician/my-bookings', authMiddleware, async (req, res) => {
+// Handles GET /technician/my-bookings.
+export const getTechnicianBookings = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
             return res.status(403).json({
@@ -533,13 +509,10 @@ router.get('/technician/my-bookings', authMiddleware, async (req, res) => {
             message: 'Failed to fetch technician bookings'
         });
     }
-});
+};
 
-
-// ==========================================
-// PUT - Technician updates repair status
-// ==========================================
-router.put('/technician/update-status/:id', authMiddleware, async (req, res) => {
+// Handles PUT /technician/update-status/:id.
+export const updateBookingStatusAsTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
             return res.status(403).json({
@@ -574,7 +547,7 @@ router.put('/technician/update-status/:id', authMiddleware, async (req, res) => 
                 $set: { status }
             },
             {
-                new: true,
+                 returnDocument: 'after',
                 runValidators: true
             }
         );
@@ -597,13 +570,10 @@ router.put('/technician/update-status/:id', authMiddleware, async (req, res) => 
             message: 'Failed to update repair status'
         });
     }
-});
+};
 
-
-// ==========================================
-// PUT - Customer cancels their booking
-// ==========================================
-router.put('/customer/cancel/:id', authMiddleware, async (req, res) => {
+// Handles PUT /customer/cancel/:id.
+export const cancelBookingAsCustomer = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -629,7 +599,7 @@ router.put('/customer/cancel/:id', authMiddleware, async (req, res) => {
                 }
             },
             {
-                new: true,
+                 returnDocument: 'after',
                 runValidators: true
             }
         );
@@ -652,6 +622,4 @@ router.put('/customer/cancel/:id', authMiddleware, async (req, res) => {
             message: 'Failed to cancel booking'
         });
     }
-});
-
-export default router;
+};

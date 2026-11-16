@@ -1,34 +1,35 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import mongoose from 'mongoose';
 import ServiceCategory from '../models/ServiceCategory.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import RepairType from '../models/RepairType.js';
 
-const router = express.Router();
+// Shared helpers used by the route handlers.
+// GET - Get all service categories
 
-// GET - Retrieve all service categories
-router.get('/', async (req, res) => {
+// Handles GET /.
+export const getAllServiceCategories = async (req, res) => {
     try {
-        const categories = await ServiceCategory.find().sort({ name: 1 });
+        const categories = await ServiceCategory.find().sort({ createdAt: -1 });
 
         res.status(200).json({
-            message: 'Service categories fetched successfully!',
+            message: 'Service categories fetched successfully',
             categories
         });
     } catch (error) {
         res.status(500).json({
-            message: 'Failed to fetch categories',
+            message: 'Failed to fetch service categories',
             error: error.message
         });
     }
-});
+};
 
-// POST - Add a new service category (Admin only)
-router.post('/', authMiddleware, async (req, res) => {
+// Handles POST /.
+export const createServiceCategory = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
-                message: 'Only admins can add service categories'
+                message: 'Access denied. Admin only.'
             });
         }
 
@@ -40,33 +41,35 @@ router.post('/', authMiddleware, async (req, res) => {
             });
         }
 
-        const category = new ServiceCategory({
-            name: name.trim(),
-            description: description.trim()
+        const category = await ServiceCategory.create({
+            name,
+            description
         });
 
-        await category.save();
-
         res.status(201).json({
-            message: 'Service category added successfully!',
+            message: 'Service category added successfully',
             category
         });
     } catch (error) {
-        res.status(error.code === 11000 ? 409 : 400).json({
-            message: error.code === 11000
-                ? 'This service category already exists'
-                : 'Failed to add service category',
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: 'This service category already exists'
+            });
+        }
+
+        res.status(500).json({
+            message: 'Failed to add service category',
             error: error.message
         });
     }
-});
+};
 
-// PUT - Update a service category (Admin only)
-router.put('/:id', authMiddleware, async (req, res) => {
+// Handles PUT /:id.
+export const updateServiceCategory = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
-                message: 'Only admins can update service categories'
+                message: 'Access denied. Admin only.'
             });
         }
 
@@ -87,14 +90,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
         const category = await ServiceCategory.findByIdAndUpdate(
             id,
-            {
-                name: name.trim(),
-                description: description.trim()
-            },
-            {
-                new: true,
-                runValidators: true
-            }
+            { name, description },
+            {  returnDocument: 'after', runValidators: true }
         );
 
         if (!category) {
@@ -104,25 +101,29 @@ router.put('/:id', authMiddleware, async (req, res) => {
         }
 
         res.status(200).json({
-            message: 'Service category updated successfully!',
+            message: 'Service category updated successfully',
             category
         });
     } catch (error) {
-        res.status(error.code === 11000 ? 409 : 400).json({
-            message: error.code === 11000
-                ? 'This service category already exists'
-                : 'Failed to update service category',
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: 'A category with this name already exists'
+            });
+        }
+
+        res.status(500).json({
+            message: 'Failed to update service category',
             error: error.message
         });
     }
-});
+};
 
-// DELETE - Remove a service category (Admin only)
-router.delete('/:id', authMiddleware, async (req, res) => {
+// Handles DELETE /:id.
+export const deleteServiceCategory = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
-                message: 'Only admins can delete service categories'
+                message: 'Access denied. Admin only.'
             });
         }
 
@@ -134,7 +135,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
             });
         }
 
-        const category = await ServiceCategory.findByIdAndDelete(id);
+        const category = await ServiceCategory.findById(id);
 
         if (!category) {
             return res.status(404).json({
@@ -142,9 +143,21 @@ router.delete('/:id', authMiddleware, async (req, res) => {
             });
         }
 
+        // Prevent deletion if repair types use this category
+        const linkedRepairType = await RepairType.findOne({
+            category: id
+        });
+
+        if (linkedRepairType) {
+            return res.status(409).json({
+                message: 'Cannot delete this category because repair types are using it'
+            });
+        }
+
+        await ServiceCategory.findByIdAndDelete(id);
+
         res.status(200).json({
-            message: 'Service category deleted successfully!',
-            category
+            message: 'Service category deleted successfully'
         });
     } catch (error) {
         res.status(500).json({
@@ -152,6 +165,4 @@ router.delete('/:id', authMiddleware, async (req, res) => {
             error: error.message
         });
     }
-});
-
-export default router;
+};

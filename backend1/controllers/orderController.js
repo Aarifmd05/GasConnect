@@ -1,18 +1,16 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import mongoose from 'mongoose';
-
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-import authMiddleware from '../middleware/authMiddleware.js';
 import generateInvoice from '../utils/generateInvoice.js';
 
-const router = express.Router();
+// Shared helpers used by the route handlers.
 // ==========================================
 // ADMIN AUTHORIZATION
 // ==========================================
 
-const adminOnly = (req, res, next) => {
+export const adminOnly = (req, res, next) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({
             message: 'Admin access required'
@@ -27,7 +25,8 @@ const adminOnly = (req, res, next) => {
 // POST /api/orders
 // ==========================================
 
-router.post('/', authMiddleware, async (req, res) => {
+// Handles POST /.
+export const createOrder = async (req, res) => {
     const updatedProducts = [];
 
     try {
@@ -207,15 +206,10 @@ const order = await Order.create({
             message: error.message || 'Unable to place order'
         });
     }
-});
+};
 
-
-// ==========================================
-// GET LOGGED-IN CUSTOMER'S ORDERS
-// GET /api/orders/my-orders
-// ==========================================
-
-router.get('/my-orders', authMiddleware, async (req, res) => {
+// Handles GET /my-orders.
+export const getMyOrders = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -242,14 +236,10 @@ router.get('/my-orders', authMiddleware, async (req, res) => {
             message: 'Unable to fetch orders'
         });
     }
-});
+};
 
-// ==========================================
-// GET ALL CUSTOMER ORDERS (ADMIN)
-// GET /api/orders/admin/all
-// ==========================================
-
-router.get('/admin/all', authMiddleware, adminOnly, async (req, res) => {
+// Handles GET /admin/all.
+export const getAllOrdersForAdmin = async (req, res) => {
     try {
         const orders = await Order.find()
             .populate('customer', 'name email phone')
@@ -269,14 +259,10 @@ router.get('/admin/all', authMiddleware, adminOnly, async (req, res) => {
             message: 'Unable to fetch customer orders'
         });
     }
-});
+};
 
-// ==========================================
-// GET SINGLE CUSTOMER ORDER (ADMIN)
-// GET /api/orders/admin/:id
-// ==========================================
-
-router.get('/admin/:id', authMiddleware, adminOnly, async (req, res) => {
+// Handles GET /admin/:id.
+export const getOrderForAdmin = async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({
@@ -306,14 +292,10 @@ router.get('/admin/:id', authMiddleware, adminOnly, async (req, res) => {
             message: 'Unable to fetch order details'
         });
     }
-});
+};
 
-// ==========================================
-// DOWNLOAD CUSTOMER / ADMIN INVOICE
-// GET /api/orders/:id/invoice
-// ==========================================
-
-router.get('/:id/invoice', authMiddleware, async (req, res) => {
+// Handles GET /:id/invoice.
+export const downloadOrderInvoice = async (req, res) => {
     try {
         // Allow only customers and admins
         if (!['customer', 'admin'].includes(req.user.role)) {
@@ -388,15 +370,10 @@ router.get('/:id/invoice', authMiddleware, async (req, res) => {
             });
         }
     }
-});
+};
 
-
-// ==========================================
-// UPDATE ORDER STATUS (ADMIN)
-// PUT /api/orders/admin/:id/status
-// ==========================================
-
-router.put('/admin/:id/status', authMiddleware, adminOnly, async (req, res) => {
+// Handles PUT /admin/:id/status.
+export const updateOrderStatus = async (req, res) => {
     const { orderStatus } = req.body;
 
     const allowedStatuses = [
@@ -507,7 +484,4 @@ router.put('/admin/:id/status', authMiddleware, adminOnly, async (req, res) => {
     } finally {
         await session.endSession();
     }
-});
-
-
-export default router;
+};

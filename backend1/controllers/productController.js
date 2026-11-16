@@ -1,13 +1,9 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import mongoose from 'mongoose';
-
 import Product from '../models/Product.js';
-import authMiddleware from '../middleware/authMiddleware.js';
 
-const router = express.Router();
-
-
+// Shared helpers used by the route handlers.
 // Helper - Validate product ID
 const isValidProductId = (id) => {
     return mongoose.isValidObjectId(id);
@@ -96,7 +92,9 @@ const validateProduct = (data, isUpdate = false) => {
 
 
 // POST - Admin adds a new product
-router.post('/', authMiddleware, async (req, res) => {
+
+// Handles POST /.
+export const createProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -151,11 +149,10 @@ router.post('/', authMiddleware, async (req, res) => {
             message: 'Failed to add product'
         });
     }
-});
+};
 
-
-// GET - View all products
-router.get('/', async (req, res) => {
+// Handles GET /.
+export const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find()
             .sort({ createdAt: -1 });
@@ -173,11 +170,10 @@ router.get('/', async (req, res) => {
             message: 'Failed to fetch products'
         });
     }
-});
+};
 
-
-// GET - Admin views low-stock products
-router.get('/admin/low-stock', authMiddleware, async (req, res) => {
+// Handles GET /admin/low-stock.
+export const getLowStockProducts = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -202,11 +198,10 @@ router.get('/admin/low-stock', authMiddleware, async (req, res) => {
             message: 'Failed to fetch low-stock products'
         });
     }
-});
+};
 
-
-// PUT - Admin restocks a product
-router.put('/admin/restock/:id', authMiddleware, async (req, res) => {
+// Handles PUT /admin/restock/:id.
+export const restockProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -241,7 +236,7 @@ router.put('/admin/restock/:id', authMiddleware, async (req, res) => {
                 $inc: { stock: quantity }
             },
             {
-                new: true
+                returnDocument: 'after',
             }
         );
 
@@ -263,11 +258,10 @@ router.put('/admin/restock/:id', authMiddleware, async (req, res) => {
             message: 'Failed to restock product'
         });
     }
-});
+};
 
-
-// PUT - Admin updates product details and stock
-router.put('/:id', authMiddleware, async (req, res) => {
+// Handles PUT /:id.
+export const updateProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -330,7 +324,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
             req.params.id,
             { $set: updates },
             {
-                new: true,
+                returnDocument: 'after',
                 runValidators: true
             }
         );
@@ -353,11 +347,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
             message: 'Failed to update product'
         });
     }
-});
+};
 
-
-// DELETE - Admin deletes a product
-router.delete('/:id', authMiddleware, async (req, res) => {
+// Handles DELETE /:id.
+export const deleteProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -392,6 +385,4 @@ router.delete('/:id', authMiddleware, async (req, res) => {
             message: 'Failed to delete product'
         });
     }
-});
-
-export default router;
+};

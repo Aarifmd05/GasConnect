@@ -1,14 +1,14 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import mongoose from 'mongoose';
 import RepairType from '../models/RepairType.js';
 import ServiceCategory from '../models/ServiceCategory.js';
-import authMiddleware from '../middleware/authMiddleware.js';
 
-const router = express.Router();
-
+// Shared helpers used by the route handlers.
 // GET - Retrieve all repair types
-router.get('/', async (req, res) => {
+
+// Handles GET /.
+export const getAllRepairTypes = async (req, res) => {
     try {
         const repairs = await RepairType.find()
             .populate('category', 'name')
@@ -24,10 +24,10 @@ router.get('/', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
-// POST - Add a new repair type (Admin only)
-router.post('/', authMiddleware, async (req, res) => {
+// Handles POST /.
+export const createRepairType = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -79,10 +79,10 @@ router.post('/', authMiddleware, async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
-// PUT - Update repair type (Admin only)
-router.put('/:id', authMiddleware, async (req, res) => {
+// Handles PUT /:id.
+export const updateRepairType = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -122,7 +122,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const updatedRepair = await RepairType.findByIdAndUpdate(
             id,
             { name, description, category, price },
-            { new: true, runValidators: true }
+            {  returnDocument: 'after', runValidators: true }
         ).populate('category', 'name');
 
         if (!updatedRepair) {
@@ -141,10 +141,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
-// DELETE - Delete repair type (Admin only)
-router.delete('/:id', authMiddleware, async (req, res) => {
+// Handles DELETE /:id.
+export const deleteRepairType = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -177,6 +177,4 @@ router.delete('/:id', authMiddleware, async (req, res) => {
             error: error.message
         });
     }
-});
-
-export default router;
+};

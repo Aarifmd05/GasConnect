@@ -1,8 +1,7 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 
-const router = express.Router();
-
+// Shared helpers used by the route handlers.
 const chatbotResponses = [
     {
         keywords: ['hello', 'hi', 'hey'],
@@ -57,7 +56,9 @@ const chatbotResponses = [
 ];
 
 // POST - Customer sends a chatbot message
-router.post('/chat', (req, res) => {
+
+// Handles POST /chat.
+export const chatWithBot = (req, res) => {
     try {
         const { message } = req.body;
 
@@ -98,6 +99,4 @@ router.post('/chat', (req, res) => {
             message: 'Chatbot Server Error'
         });
     }
-});
-
-export default router;
+};

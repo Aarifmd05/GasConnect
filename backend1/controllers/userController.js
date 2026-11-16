@@ -1,22 +1,18 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
-
-import authMiddleware from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
 import Booking from '../models/Booking.js';
 import PasswordResetOTP from '../models/PasswordResetOTP.js';
 import sendOtpEmail from '../utils/emailService.js';
-import upload from '../middleware/upload.js';
 import uploadToCloudinary from '../utils/uploadToCloudinary.js';
 import cloudinary from '../config/cloudinary.js';
 
-const router = express.Router();
-
+// Shared helpers used by the route handlers.
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ==========================================
@@ -422,33 +418,123 @@ const verifySignupOTP = async (req, res, role) => {
 // CUSTOMER SIGNUP OTP ROUTES
 // ==========================================
 
-router.post('/customer/signup/request-otp', (req, res) => {
-    return requestSignupOTP(req, res, 'customer');
-});
+// Common Login Function for All Three Roles
+const loginUser = async (req, res, role) => {
+    try {
+        const { email, password } = req.body;
 
-router.post('/customer/signup/verify-otp', (req, res) => {
-    return verifySignupOTP(req, res, 'customer');
-});
+        if (
+            typeof email !== 'string' ||
+            typeof password !== 'string' ||
+            !email.trim() ||
+            !password
+        ) {
+            return res.status(400).json({
+                message: 'Email and password are required'
+            });
+        }
 
+        const normalizedEmail = email.trim().toLowerCase();
 
-// ==========================================
-// TECHNICIAN SIGNUP OTP ROUTES
-// ==========================================
+        // Restrict admin email/password login to the authorized admin
+if (
+    role === 'admin' &&
+    normalizedEmail !== 'gasconnect4@gmail.com'
+) {
+    return res.status(403).json({
+        message: 'This email is not authorized for admin login.'
+    });
+}
 
-router.post(
-    '/technician/signup/request-otp',
-    upload.single('profilePhoto'),
-    (req, res) => {
-        return requestSignupOTP(req, res, 'technician');
+        const user = await User.findOne({
+            email: normalizedEmail,
+            role
+        });
+
+        if (!user) {
+            return res.status(401).json({
+                message: 'Invalid email or password'
+            });
+        }
+
+        if (!user.password) {
+    return res.status(401).json({
+        message: 'Invalid email or password'
+    });
+}
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                message: 'Invalid email or password'
+            });
+        }
+
+        if (role === 'technician' && user.approvalStatus !== 'approved') {
+            return res.status(403).json({
+                message: 'Your technician account is not approved yet'
+            });
+        }
+
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is missing');
+
+            return res.status(500).json({
+                message: 'Server authentication configuration error'
+            });
+        }
+
+        const token = jwt.sign(
+            {
+                id: user._id.toString(),
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error.message);
+
+        res.status(500).json({ message: 'Server Error' });
     }
-);
+};
 
-router.post('/technician/signup/verify-otp', (req, res) => {
+// Admin Email and Password Login API
+
+// Handles POST /customer/signup/request-otp.
+export const requestCustomerSignupOtp = (req, res) => {
+    return requestSignupOTP(req, res, 'customer');
+};
+
+// Handles POST /customer/signup/verify-otp.
+export const verifyCustomerSignupOtp = (req, res) => {
+    return verifySignupOTP(req, res, 'customer');
+};
+
+// Handles POST /technician/signup/request-otp.
+export const requestTechnicianSignupOtp = (req, res) => {
+        return requestSignupOTP(req, res, 'technician');
+    };
+
+// Handles POST /technician/signup/verify-otp.
+export const verifyTechnicianSignupOtp = (req, res) => {
     return verifySignupOTP(req, res, 'technician');
-});
+};
 
-// Admin - View All Customers
-router.get('/admin/customers', authMiddleware, async (req, res) => {
+// Handles GET /admin/customers.
+export const getAllCustomersForAdmin = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -471,10 +557,10 @@ router.get('/admin/customers', authMiddleware, async (req, res) => {
             message: 'Failed to fetch customers'
         });
     }
-});
+};
 
-// Admin - View All Technicians
-router.get('/admin/technicians', authMiddleware, async (req, res) => {
+// Handles GET /admin/technicians.
+export const getAllTechniciansForAdmin = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -497,10 +583,10 @@ router.get('/admin/technicians', authMiddleware, async (req, res) => {
             message: 'Failed to fetch technicians'
         });
     }
-});
+};
 
-// Admin - Approve or Reject Technician
-router.put('/admin/technicians/:id/status', authMiddleware, async (req, res) => {
+// Handles PUT /admin/technicians/:id/status.
+export const updateTechnicianApprovalStatus = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -527,7 +613,7 @@ router.put('/admin/technicians/:id/status', authMiddleware, async (req, res) => 
             },
             { approvalStatus },
             {
-                new: true,
+                 returnDocument: 'after',
                 runValidators: true
             }
         ).select('-password');
@@ -547,11 +633,10 @@ router.put('/admin/technicians/:id/status', authMiddleware, async (req, res) => 
             message: 'Failed to update technician status'
         });
     }
-});
+};
 
-
-// Admin - Delete Technician
-router.delete('/admin/technicians/:id', authMiddleware, async (req, res) => {
+// Handles DELETE /admin/technicians/:id.
+export const deleteTechnicianForAdmin = async (req, res) => {
     try {
         // Only admins can delete technicians
         if (req.user.role !== 'admin') {
@@ -646,10 +731,10 @@ router.delete('/admin/technicians/:id', authMiddleware, async (req, res) => {
             message: 'Failed to delete technician'
         });
     }
-});
+};
 
-// Admin - Forgot Password: Generate and Send OTP
-router.post('/admin/forgot-password', async (req, res) => {
+// Handles POST /admin/forgot-password.
+export const requestAdminPasswordReset = async (req, res) => {
     try {
         const { email } = req.body || {};
 
@@ -741,11 +826,10 @@ if (normalizedEmail !== 'gasconnect4@gmail.com') {
             message: 'Unable to send OTP. Please try again later.'
         });
     }
-});
+};
 
-
-// Admin - Verify Password Reset OTP
-router.post('/admin/verify-reset-otp', async (req, res) => {
+// Handles POST /admin/verify-reset-otp.
+export const verifyAdminPasswordResetOtp = async (req, res) => {
     try {
         const { email, otp } = req.body || {};
 
@@ -865,12 +949,10 @@ router.post('/admin/verify-reset-otp', async (req, res) => {
             message: 'OTP verification failed. Please try again.'
         });
     }
-});
+};
 
-
-
-// Admin - Reset Password
-router.post('/admin/reset-password', async (req, res) => {
+// Handles POST /admin/reset-password.
+export const resetAdminPassword = async (req, res) => {
     try {
         const { resetToken, newPassword } = req.body || {};
 
@@ -970,14 +1052,10 @@ router.post('/admin/reset-password', async (req, res) => {
             message: 'Unable to reset password. Please try again.'
         });
     }
-});
+};
 
-// =============================================
-// TECHNICIAN - FORGOT PASSWORD: SEND OTP
-// =============================================
-
-// Technician - Forgot Password: Generate and Send OTP
-router.post('/technician/forgot-password', async (req, res) => {
+// Handles POST /technician/forgot-password.
+export const requestTechnicianPasswordReset = async (req, res) => {
     try {
         const { email } = req.body || {};
 
@@ -1062,15 +1140,10 @@ router.post('/technician/forgot-password', async (req, res) => {
             message: 'Unable to send OTP. Please try again later.'
         });
     }
-});
+};
 
-
-// =============================================
-// TECHNICIAN - VERIFY RESET OTP
-// =============================================
-
-// Technician - Verify Password Reset OTP
-router.post('/technician/verify-reset-otp', async (req, res) => {
+// Handles POST /technician/verify-reset-otp.
+export const verifyTechnicianPasswordResetOtp = async (req, res) => {
     try {
         const { email, otp } = req.body || {};
 
@@ -1181,15 +1254,10 @@ router.post('/technician/verify-reset-otp', async (req, res) => {
             message: 'OTP verification failed. Please try again.'
         });
     }
-});
+};
 
-
-// =============================================
-// TECHNICIAN - RESET PASSWORD
-// =============================================
-
-// Technician - Reset Password
-router.post('/technician/reset-password', async (req, res) => {
+// Handles POST /technician/reset-password.
+export const resetTechnicianPassword = async (req, res) => {
     try {
         const { resetToken, newPassword } = req.body || {};
 
@@ -1267,14 +1335,10 @@ router.post('/technician/reset-password', async (req, res) => {
             message: 'Unable to reset password. Please try again.'
         });
     }
-});
+};
 
-
-// =============================================
-// CUSTOMER - FORGOT PASSWORD: SEND OTP
-// =============================================
-
-router.post('/customer/forgot-password', async (req, res) => {
+// Handles POST /customer/forgot-password.
+export const requestCustomerPasswordReset = async (req, res) => {
     try {
         const { email } = req.body || {};
 
@@ -1349,14 +1413,10 @@ router.post('/customer/forgot-password', async (req, res) => {
             message: 'Unable to send OTP. Please try again later.'
         });
     }
-});
+};
 
-
-// =============================================
-// CUSTOMER - VERIFY RESET OTP
-// =============================================
-
-router.post('/customer/verify-reset-otp', async (req, res) => {
+// Handles POST /customer/verify-reset-otp.
+export const verifyCustomerPasswordResetOtp = async (req, res) => {
     try {
         const { email, otp } = req.body || {};
 
@@ -1460,14 +1520,10 @@ router.post('/customer/verify-reset-otp', async (req, res) => {
             message: 'OTP verification failed. Please try again.'
         });
     }
-});
+};
 
-
-// =============================================
-// CUSTOMER - RESET PASSWORD
-// =============================================
-
-router.post('/customer/reset-password', async (req, res) => {
+// Handles POST /customer/reset-password.
+export const resetCustomerPassword = async (req, res) => {
     try {
         const { resetToken, newPassword } = req.body || {};
 
@@ -1540,115 +1596,20 @@ router.post('/customer/reset-password', async (req, res) => {
             message: 'Unable to reset password. Please try again.'
         });
     }
-});
-
-
-// Common Login Function for All Three Roles
-const loginUser = async (req, res, role) => {
-    try {
-        const { email, password } = req.body;
-
-        if (
-            typeof email !== 'string' ||
-            typeof password !== 'string' ||
-            !email.trim() ||
-            !password
-        ) {
-            return res.status(400).json({
-                message: 'Email and password are required'
-            });
-        }
-
-        const normalizedEmail = email.trim().toLowerCase();
-
-        // Restrict admin email/password login to the authorized admin
-if (
-    role === 'admin' &&
-    normalizedEmail !== 'gasconnect4@gmail.com'
-) {
-    return res.status(403).json({
-        message: 'This email is not authorized for admin login.'
-    });
-}
-
-        const user = await User.findOne({
-            email: normalizedEmail,
-            role
-        });
-
-        if (!user) {
-            return res.status(401).json({
-                message: 'Invalid email or password'
-            });
-        }
-
-        if (!user.password) {
-    return res.status(401).json({
-        message: 'Invalid email or password'
-    });
-}
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            return res.status(401).json({
-                message: 'Invalid email or password'
-            });
-        }
-
-        if (role === 'technician' && user.approvalStatus !== 'approved') {
-            return res.status(403).json({
-                message: 'Your technician account is not approved yet'
-            });
-        }
-
-        if (!process.env.JWT_SECRET) {
-            console.error('JWT_SECRET is missing');
-
-            return res.status(500).json({
-                message: 'Server authentication configuration error'
-            });
-        }
-
-        const token = jwt.sign(
-            {
-                id: user._id.toString(),
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: '1d' }
-        );
-
-        res.status(200).json({
-            message: 'Login successful',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-    } catch (error) {
-        console.error('Login error:', error.message);
-
-        res.status(500).json({ message: 'Server Error' });
-    }
 };
 
-// Admin Email and Password Login API
-router.post('/admin/login', (req, res) => {
+// Handles POST /admin/login.
+export const adminLogin = (req, res) => {
     loginUser(req, res, 'admin');
-});
+};
 
-// Customer Login API
-router.post('/customer/login', (req, res) => {
+// Handles POST /customer/login.
+export const customerLogin = (req, res) => {
     loginUser(req, res, 'customer');
-});
+};
 
-
-// Google Admin Login API
-router.post('/admin/google-login', async (req, res) => {
+// Handles POST /admin/google-login.
+export const adminGoogleLogin = async (req, res) => {
     try {
         const { credential } = req.body;
 
@@ -1744,16 +1705,15 @@ router.post('/admin/google-login', async (req, res) => {
             message: 'Google authentication failed. Please try again.'
         });
     }
-});
+};
 
-
-// Technician Login API
-router.post('/technician/login', (req, res) => {
+// Handles POST /technician/login.
+export const technicianLogin = (req, res) => {
     loginUser(req, res, 'technician');
-});
+};
 
-// Customer Profile API
-router.get('/customer/profile', authMiddleware, async (req, res) => {
+// Handles GET /customer/profile.
+export const getCustomerProfile = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -1778,11 +1738,10 @@ router.get('/customer/profile', authMiddleware, async (req, res) => {
             message: 'Failed to fetch profile'
         });
     }
-});
+};
 
-
-// Google Customer Login API
-router.post('/customer/google-login', async (req, res) => {
+// Handles POST /customer/google-login.
+export const customerGoogleLogin = async (req, res) => {
     try {
         const { credential, phone } = req.body;
 
@@ -1903,10 +1862,10 @@ router.post('/customer/google-login', async (req, res) => {
             message: 'Google authentication failed. Please try again.'
         });
     }
-});
+};
 
-// Google Technician Login API
-router.post('/technician/google-login', async (req, res) => {
+// Handles POST /technician/google-login.
+export const technicianGoogleLogin = async (req, res) => {
     try {
         const { credential } = req.body;
 
@@ -2035,13 +1994,10 @@ router.post('/technician/google-login', async (req, res) => {
             message: 'Google authentication failed. Please try again.'
         });
     }
-});
+};
 
-// Google Technician Signup API
-router.post(
-    '/technician/google-signup',
-    upload.single('profilePhoto'),
-    async (req, res) => {
+// Handles POST /technician/google-signup.
+export const technicianGoogleSignup = async (req, res) => {
         try {
             const {
                 credential,
@@ -2192,12 +2148,10 @@ router.post(
                 message: 'Technician Google registration failed. Please try again.'
             });
         }
-    }
-);
+    };
 
-
-// Customer Profile Update API
-router.put('/customer/profile', authMiddleware, async (req, res) => {
+// Handles PUT /customer/profile.
+export const updateCustomerProfile = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -2272,13 +2226,10 @@ router.put('/customer/profile', authMiddleware, async (req, res) => {
             message: 'Unable to update customer profile.'
         });
     }
-});
+};
 
-
-// ==========================================
-// GET - Technician Profile
-// ==========================================
-router.get('/technician/profile', authMiddleware, async (req, res) => {
+// Handles GET /technician/profile.
+export const getTechnicianProfile = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
             return res.status(403).json({
@@ -2309,10 +2260,10 @@ router.get('/technician/profile', authMiddleware, async (req, res) => {
             message: 'Unable to fetch technician profile.'
         });
     }
-});
+};
 
-// Technician Profile Update API
-router.put('/technician/profile', authMiddleware, async (req, res) => {
+// Handles PUT /technician/profile.
+export const updateTechnicianProfile = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
             return res.status(403).json({
@@ -2535,12 +2486,10 @@ technician.phone = cleanPhone;
             message: 'Unable to update technician profile.'
         });
     }
-});
+};
 
-
-
-// Admin - Dashboard Statistics API
-router.get('/admin/dashboard-stats', authMiddleware, async (req, res) => {
+// Handles GET /admin/dashboard-stats.
+export const getAdminDashboardStats = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -2579,13 +2528,10 @@ router.get('/admin/dashboard-stats', authMiddleware, async (req, res) => {
             message: 'Failed to fetch dashboard statistics'
         });
     }
-});
-// ==========================================
-// ADMIN - CHANGE PASSWORD
-// ==========================================
+};
 
-// Common - Change Password for Customer, Technician and Admin
-router.put('/change-password', authMiddleware, async (req, res) => {
+// Handles PUT /change-password.
+export const changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body || {};
 
@@ -2683,15 +2629,10 @@ router.put('/change-password', authMiddleware, async (req, res) => {
             message: 'Unable to change password. Please try again.'
         });
     }
-});
+};
 
-
-// ==========================================
-// ADMIN - GET PROFILE
-// ==========================================
-
-// ADMIN - GET PROFILE
-router.get('/admin/profile', authMiddleware, async (req, res) => {
+// Handles GET /admin/profile.
+export const getAdminProfile = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -2721,14 +2662,10 @@ router.get('/admin/profile', authMiddleware, async (req, res) => {
             message: 'Unable to fetch admin profile.'
         });
     }
-});
+};
 
-
-// ==========================================
-// ADMIN - UPDATE PROFILE
-// ==========================================
-
-router.put('/admin/profile', authMiddleware, async (req, res) => {
+// Handles PUT /admin/profile.
+export const updateAdminProfile = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -2953,11 +2890,10 @@ router.put('/admin/profile', authMiddleware, async (req, res) => {
             message: 'Unable to update admin profile.'
         });
     }
-});
+};
 
-
-// Get all saved addresses of the logged-in customer
-router.get('/customer/addresses', authMiddleware, async (req, res) => {
+// Handles GET /customer/addresses.
+export const getCustomerAddresses = async (req, res) => {
     try {
         // Only customers can access saved addresses
         if (req.user.role !== 'customer') {
@@ -2990,12 +2926,10 @@ router.get('/customer/addresses', authMiddleware, async (req, res) => {
             message: 'Failed to fetch customer addresses'
         });
     }
-});
+};
 
-
-
-// Add a new address
-router.post('/customer/addresses', authMiddleware, async (req, res) => {
+// Handles POST /customer/addresses.
+export const addCustomerAddress = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -3101,11 +3035,10 @@ router.post('/customer/addresses', authMiddleware, async (req, res) => {
             message: 'Failed to add address'
         });
     }
-});
+};
 
-
-// Update an existing address
-router.put('/customer/addresses/:addressId', authMiddleware, async (req, res) => {
+// Handles PUT /customer/addresses/:addressId.
+export const updateCustomerAddress = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -3229,11 +3162,10 @@ router.put('/customer/addresses/:addressId', authMiddleware, async (req, res) =>
             message: 'Failed to update address'
         });
     }
-});
+};
 
-
-// Set an address as default
-router.patch('/customer/addresses/:addressId/default', authMiddleware, async (req, res) => {
+// Handles PATCH /customer/addresses/:addressId/default.
+export const setDefaultCustomerAddress = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -3283,11 +3215,10 @@ router.patch('/customer/addresses/:addressId/default', authMiddleware, async (re
             message: 'Failed to set default address'
         });
     }
-});
+};
 
-
-// Delete an address
-router.delete('/customer/addresses/:addressId', authMiddleware, async (req, res) => {
+// Handles DELETE /customer/addresses/:addressId.
+export const deleteCustomerAddress = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -3342,7 +3273,4 @@ router.delete('/customer/addresses/:addressId', authMiddleware, async (req, res)
             message: 'Failed to delete address'
         });
     }
-});
-
-
-export default router;
+};

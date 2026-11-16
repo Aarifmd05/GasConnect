@@ -1,20 +1,17 @@
+// Business logic for this set of API routes.
 
-import express from 'express';
 import mongoose from 'mongoose';
-
 import Review from '../models/Review.js';
 import Booking from '../models/Booking.js';
 import User from '../models/User.js';
-import authMiddleware from '../middleware/authMiddleware.js';
 
-const router = express.Router();
-
-
+// Shared helpers used by the route handlers.
 // ========================================
 // POST - Customer submits a review
 // ========================================
 
-router.post('/', authMiddleware, async (req, res) => {
+// Handles POST /.
+export const createReview = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
             return res.status(403).json({
@@ -118,14 +115,10 @@ router.post('/', authMiddleware, async (req, res) => {
             message: 'Unable to submit review'
         });
     }
-});
+};
 
-
-// ========================================
-// GET - Admin views all reviews
-// ========================================
-
-router.get('/admin/all', authMiddleware, async (req, res) => {
+// Handles GET /admin/all.
+export const getAllReviewsForAdmin = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
@@ -152,14 +145,10 @@ router.get('/admin/all', authMiddleware, async (req, res) => {
             message: 'Unable to fetch reviews'
         });
     }
-});
+};
 
-
-// ========================================
-// GET - View reviews for a technician
-// ========================================
-
-router.get('/technician/:id', async (req, res) => {
+// Handles GET /technician/:id.
+export const getTechnicianReviews = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -199,6 +188,4 @@ router.get('/technician/:id', async (req, res) => {
             message: 'Unable to fetch reviews'
         });
     }
-});
-
-export default router;
+};
