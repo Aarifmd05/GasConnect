@@ -116,6 +116,18 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
     return localDate.toISOString().slice(0, 10);
   };
 
+  const getMinimumTime = () => {
+    const now = new Date();
+
+    // Add one minute to ensure the selected time is in the future
+    now.setMinutes(now.getMinutes() + 1);
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    return `${hours}:${minutes}`;
+  };
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
 
@@ -332,9 +344,8 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             <button
               type="button"
               id="repairType"
-              className={`repair-service-dropdown-trigger ${
-                showRepairDropdown ? 'is-open' : ''
-              }`}
+              className={`repair-service-dropdown-trigger ${showRepairDropdown ? 'is-open' : ''
+                }`}
               onClick={() => setShowRepairDropdown((open) => !open)}
               disabled={loadingRepairs || repairs.length === 0}
               aria-haspopup="listbox"
@@ -345,20 +356,18 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
                 {loadingRepairs
                   ? 'Loading services...'
                   : selectedRepair
-                    ? `${selectedRepair.name}${
-                        selectedRepair.price != null
-                          ? ` - ₹${selectedRepair.price}`
-                          : ''
-                      }`
+                    ? `${selectedRepair.name}${selectedRepair.price != null
+                      ? ` - ₹${selectedRepair.price}`
+                      : ''
+                    }`
                     : repairs.length === 0
                       ? 'No repair services available'
                       : 'Choose a repair service'}
               </span>
 
               <span
-                className={`repair-service-dropdown-chevron ${
-                  showRepairDropdown ? 'rotated' : ''
-                }`}
+                className={`repair-service-dropdown-chevron ${showRepairDropdown ? 'rotated' : ''
+                  }`}
                 aria-hidden="true"
               >
                 ▾
@@ -373,9 +382,8 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
               >
                 <button
                   type="button"
-                  className={`repair-service-dropdown-option ${
-                    !repairType ? 'selected' : ''
-                  }`}
+                  className={`repair-service-dropdown-option ${!repairType ? 'selected' : ''
+                    }`}
                   role="option"
                   aria-selected={!repairType}
                   onClick={() => {
@@ -387,19 +395,17 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
                 </button>
 
                 {repairs.map((repair) => {
-                  const optionLabel = `${repair.name}${
-                    repair.price != null ? ` - ₹${repair.price}` : ''
-                  }`;
+                  const optionLabel = `${repair.name}${repair.price != null ? ` - ₹${repair.price}` : ''
+                    }`;
 
                   return (
                     <button
                       type="button"
                       key={repair._id}
-                      className={`repair-service-dropdown-option ${
-                        String(repairType) === String(repair._id)
-                          ? 'selected'
-                          : ''
-                      }`}
+                      className={`repair-service-dropdown-option ${String(repairType) === String(repair._id)
+                        ? 'selected'
+                        : ''
+                        }`}
                       role="option"
                       aria-selected={
                         String(repairType) === String(repair._id)
@@ -435,58 +441,58 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             existing image so our technician can understand the issue.
           </p>
 
-          
-{/* Camera input */}
-<input
-  ref={cameraInputRef}
-  type="file"
-  accept="image/*"
-  capture="environment"
-  className="hidden-photo-input"
-  onChange={handlePhotoChange}
-/>
 
-{/* Gallery input */}
-<input
-  ref={galleryInputRef}
-  type="file"
-  accept="image/jpeg,image/png,image/webp"
-  className="hidden-photo-input"
-  onChange={handlePhotoChange}
-/>
+          {/* Camera input */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden-photo-input"
+            onChange={handlePhotoChange}
+          />
+
+          {/* Gallery input */}
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden-photo-input"
+            onChange={handlePhotoChange}
+          />
 
 
           {!photoPreview ? (
-            
-<div className="photo-upload-options">
-  <button
-    type="button"
-    className="photo-upload-option"
-    onClick={() => cameraInputRef.current?.click()}
-  >
-    <div className="photo-option-icon">
-      <Camera size={25} />
-    </div>
-    <div>
-      <strong>Take a Photo</strong>
-      <span>Open your camera</span>
-    </div>
-  </button>
 
-  <button
-    type="button"
-    className="photo-upload-option"
-    onClick={() => galleryInputRef.current?.click()}
-  >
-    <div className="photo-option-icon">
-      <ImagePlus size={25} />
-    </div>
-    <div>
-      <strong>Choose from Gallery</strong>
-      <span>Upload an existing image</span>
-    </div>
-  </button>
-</div>
+            <div className="photo-upload-options">
+              <button
+                type="button"
+                className="photo-upload-option"
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                <div className="photo-option-icon">
+                  <Camera size={25} />
+                </div>
+                <div>
+                  <strong>Take a Photo</strong>
+                  <span>Open your camera</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="photo-upload-option"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <div className="photo-option-icon">
+                  <ImagePlus size={25} />
+                </div>
+                <div>
+                  <strong>Choose from Gallery</strong>
+                  <span>Upload an existing image</span>
+                </div>
+              </button>
+            </div>
 
           ) : (
             <div className="issue-photo-preview">
@@ -569,6 +575,11 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             <input
               id="bookingTime"
               type="time"
+              min={
+                bookingDate === getMinimumDate()
+                  ? getMinimumTime()
+                  : '00:00'
+              }
               value={bookingTime}
               onChange={(event) => setBookingTime(event.target.value)}
               required

@@ -17,14 +17,6 @@
 }
 
 .technician-google-button {
-    width: 100%;
-    height: 58px;
-    border: none;
-    border-radius: 12px;
-    background: #FFFFFF;
-    color: #0754A0;
-    font-size: 18px;
-    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,4 +201,30 @@
     -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset;
     -webkit-text-fill-color: #0754A0;
     transition: background-color 9999s ease-in-out 0s;
+}
+
+.back-home-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.back-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: 1px solid #0754A0;
+    border-radius: 8px;
+    color: #0754A0;
+    background: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.back-home-btn:hover {
+    background: #0754A0;
+    color: white;
 }

@@ -804,6 +804,14 @@ function TechnicianSignup() {
                 </form>
 
             )}
+            
+            {/* Outside the form box */}
+            <div className="back-home-wrapper">
+                <Link to="/" className="back-home-btn">
+                    <ArrowLeft size={18} />
+                    Back to Home
+                </Link>
+            </div>
 
         </AuthLayout>
     );

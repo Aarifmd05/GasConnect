@@ -67,13 +67,6 @@
 }
 
 .google-signup {
-    height: 48px;
-    border: none;
-    border-radius: 10px;
-    background: white;
-    color: #0754A0;
-    font-size: 15px;
-    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -205,3 +198,28 @@
     cursor: not-allowed;
 }
 
+.back-home-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.back-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: 1px solid #0754A0;
+    border-radius: 8px;
+    color: #0754A0;
+    background: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.back-home-btn:hover {
+    background: #0754A0;
+    color: white;
+}

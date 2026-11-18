@@ -126,7 +126,7 @@ export const createBooking = async (req, res) => {
                     'bookings',
                     req.file.filename
                 )
-            ).catch(() => {});
+            ).catch(() => { });
         }
 
         return res.status(
@@ -189,6 +189,7 @@ export const getAllBookingsForAdmin = async (req, res) => {
             .populate('customer', 'name email phone')
             .populate('repairType', 'name price')
             .populate('technician', 'name phone specialization')
+            .populate('cancelledBy', 'name phone')
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
@@ -211,6 +212,7 @@ export const getAllBookingsForAdmin = async (req, res) => {
 // PUT - Admin assigns booking to technician
 // ==========================================
 
+
 export const assignBookingToTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -220,14 +222,41 @@ export const assignBookingToTechnician = async (req, res) => {
         }
 
         const { technicianId } = req.body;
+        const bookingId = req.params.id;
 
-        if (!mongoose.isValidObjectId(req.params.id)) {
+        if (!mongoose.isValidObjectId(bookingId)) {
             return res.status(400).json({
                 message: 'Invalid booking ID'
             });
         }
 
-        // Validate selected technician for direct assignment.
+        const existingBooking = await Booking.findById(bookingId);
+
+        if (!existingBooking) {
+            return res.status(404).json({
+                message: 'Booking not found'
+            });
+        }
+
+        const isReassignment =
+            existingBooking.status === 'reassignment-needed';
+
+        if (
+            !['pending', 'rejected', 'reassignment-needed']
+                .includes(existingBooking.status)
+        ) {
+            return res.status(409).json({
+                message: 'This booking cannot be assigned in its current status'
+            });
+        }
+
+        // Reassignment must always select a new technician.
+        if (isReassignment && !technicianId) {
+            return res.status(400).json({
+                message: 'Please select a technician for reassignment'
+            });
+        }
+
         if (technicianId) {
             if (!mongoose.isValidObjectId(technicianId)) {
                 return res.status(400).json({
@@ -246,19 +275,33 @@ export const assignBookingToTechnician = async (req, res) => {
                     message: 'Approved technician not found'
                 });
             }
+
+            // Do not assign the job to the technician who cancelled it.
+            const previousTechnicianId =
+                existingBooking.cancelledBy || existingBooking.technician;
+
+            if (
+                isReassignment &&
+                previousTechnicianId &&
+                previousTechnicianId.toString() === technicianId.toString()
+            ) {
+                return res.status(400).json({
+                    message: 'Please select a different technician'
+                });
+            }
         }
 
-        // Direct assignment or publish to all approved technicians.
         const booking = await Booking.findOneAndUpdate(
             {
-                _id: req.params.id,
-                status: { $in: ['pending', 'rejected'] }
+                _id: bookingId,
+                status: isReassignment
+                    ? 'reassignment-needed'
+                    : { $in: ['pending', 'rejected'] }
             },
             {
                 $set: {
                     technician: technicianId || null,
                     status: 'assigned',
-                    declinedBy: [],
                     completionOtpVerified: false
                 },
                 $unset: {
@@ -272,18 +315,21 @@ export const assignBookingToTechnician = async (req, res) => {
         )
             .populate('customer', 'name email phone')
             .populate('repairType', 'name price')
-            .populate('technician', 'name phone specialization');
+            .populate('technician', 'name phone specialization')
+            .populate('cancelledBy', 'name phone');
 
         if (!booking) {
-            return res.status(404).json({
-                message: 'Booking not found or cannot be published'
+            return res.status(409).json({
+                message: 'Booking status changed. Please refresh and try again.'
             });
         }
 
         return res.status(200).json({
-            message: technicianId
-                ? 'Booking directly assigned to technician successfully'
-                : 'Booking published to all approved technicians successfully',
+            message: isReassignment
+                ? 'Booking reassigned to a new technician successfully'
+                : technicianId
+                    ? 'Booking directly assigned to technician successfully'
+                    : 'Booking published to all approved technicians successfully',
             booking
         });
 
@@ -616,6 +662,97 @@ export const updateBookingStatusAsTechnician = async (req, res) => {
 
         return res.status(500).json({
             message: 'Failed to update repair status'
+        });
+    }
+};
+
+// Handles PUT /technician/cancel/:id
+export const cancelBookingAsTechnician = async (req, res) => {
+    try {
+        if (req.user.role !== 'technician') {
+            return res.status(403).json({
+                message: 'Only technicians can cancel their assigned services'
+            });
+        }
+
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                message: 'Invalid booking ID'
+            });
+        }
+
+        const { reason, details } = req.body;
+
+        const allowedReasons = [
+            'Taking longer than expected',
+            'Unable to reach customer',
+            'Emergency / Personal reason',
+            'Vehicle or equipment problem',
+            'Other'
+        ];
+
+        if (!allowedReasons.includes(reason)) {
+            return res.status(400).json({
+                message: 'Please select a valid cancellation reason'
+            });
+        }
+
+        if (reason === 'Other') {
+            if (
+                typeof details !== 'string' ||
+                details.trim().length < 5 ||
+                details.trim().length > 500
+            ) {
+                return res.status(400).json({
+                    message: 'Please provide a reason between 5 and 500 characters'
+                });
+            }
+        }
+
+        const booking = await Booking.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                technician: req.user.id,
+                status: { $in: ['accepted', 'in-progress'] }
+            },
+            {
+                $set: {
+                    status: 'reassignment-needed',
+                    cancellationReason: reason,
+                    cancellationDetails:
+                        reason === 'Other' ? details.trim() : '',
+                    cancelledBy: req.user.id,
+                    cancelledAt: new Date()
+                },
+                $addToSet: {
+                    declinedBy: req.user.id
+                }
+            },
+            {
+                returnDocument: 'after',
+                runValidators: true
+            }
+        )
+            .populate('customer', 'name email phone')
+            .populate('technician', 'name phone specialization')
+            .populate('repairType', 'name price');
+
+        if (!booking) {
+            return res.status(409).json({
+                message: 'Booking not found, not assigned to you, or cannot be cancelled'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Service cancelled successfully. Waiting for admin reassignment.',
+            booking
+        });
+
+    } catch (error) {
+        console.error('Technician cancellation error:', error);
+
+        return res.status(500).json({
+            message: 'Failed to cancel service'
         });
     }
 };

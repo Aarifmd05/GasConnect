@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShieldCheck, Mail, LockKeyhole, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck, Mail, LockKeyhole, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 import AuthLayout from '../../components/AuthLayout';
 import logo from '../../assets/logo.png';
@@ -113,8 +113,8 @@ function AdminLogin() {
                     size: 'large',
                     text: 'continue_with',
                     shape: 'rectangular',
-                    width: 320,
-                    logo_alignment: 'center'
+                    width: 700,
+                    logo_alignment: 'left'
                 }
             );
         };
@@ -224,6 +224,13 @@ function AdminLogin() {
                     {loading ? 'Please wait...' : 'Login'}
                 </button>
             </form>
+            {/* Outside the form box */}
+            <div className="back-home-wrapper">
+                <Link to="/" className="back-home-btn">
+                    <ArrowLeft size={18} />
+                    Back to Home
+                </Link>
+            </div>
         </AuthLayout>
     );
 }

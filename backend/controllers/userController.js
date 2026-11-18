@@ -158,7 +158,7 @@ const requestSignupOTP = async (req, res, role) => {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-       
+
 
         // Additional technician validation
         if (role === 'technician') {
@@ -227,11 +227,11 @@ const requestSignupOTP = async (req, res, role) => {
         };
 
         // Upload technician profile photo to Cloudinary
-if (role === 'technician') {
-    pendingData.profilePhoto = await uploadToCloudinary(
-        req.file.buffer
-    );
-}
+        if (role === 'technician') {
+            pendingData.profilePhoto = await uploadToCloudinary(
+                req.file.buffer
+            );
+        }
 
         if (role === 'technician') {
             pendingData.specialization = specialization.trim();
@@ -365,12 +365,12 @@ const verifySignupOTP = async (req, res, role) => {
         const signupData = otpRecord.pendingData;
 
         if (role === 'technician' && !signupData.profilePhoto) {
-    await PasswordResetOTP.deleteMany(otpQuery);
+            await PasswordResetOTP.deleteMany(otpQuery);
 
-    return res.status(400).json({
-        message: 'Technician profile photo is missing. Please register again.'
-    });
-}
+            return res.status(400).json({
+                message: 'Technician profile photo is missing. Please register again.'
+            });
+        }
 
         const newUser = new User({
             name: signupData.name,
@@ -437,14 +437,14 @@ const loginUser = async (req, res, role) => {
         const normalizedEmail = email.trim().toLowerCase();
 
         // Restrict admin email/password login to the authorized admin
-if (
-    role === 'admin' &&
-    normalizedEmail !== 'gasconnect4@gmail.com'
-) {
-    return res.status(403).json({
-        message: 'This email is not authorized for admin login.'
-    });
-}
+        if (
+            role === 'admin' &&
+            normalizedEmail !== 'gasconnect4@gmail.com'
+        ) {
+            return res.status(403).json({
+                message: 'This email is not authorized for admin login.'
+            });
+        }
 
         const user = await User.findOne({
             email: normalizedEmail,
@@ -458,10 +458,10 @@ if (
         }
 
         if (!user.password) {
-    return res.status(401).json({
-        message: 'Invalid email or password'
-    });
-}
+            return res.status(401).json({
+                message: 'Invalid email or password'
+            });
+        }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -525,8 +525,8 @@ export const verifyCustomerSignupOtp = (req, res) => {
 
 // Handles POST /technician/signup/request-otp.
 export const requestTechnicianSignupOtp = (req, res) => {
-        return requestSignupOTP(req, res, 'technician');
-    };
+    return requestSignupOTP(req, res, 'technician');
+};
 
 // Handles POST /technician/signup/verify-otp.
 export const verifyTechnicianSignupOtp = (req, res) => {
@@ -613,7 +613,7 @@ export const updateTechnicianApprovalStatus = async (req, res) => {
             },
             { approvalStatus },
             {
-                 returnDocument: 'after',
+                returnDocument: 'after',
                 runValidators: true
             }
         ).select('-password');
@@ -748,11 +748,11 @@ export const requestAdminPasswordReset = async (req, res) => {
         const normalizedEmail = email.trim().toLowerCase();
 
         // Only the authorized GasConnect admin can reset an admin password
-if (normalizedEmail !== 'gasconnect4@gmail.com') {
-    return res.status(403).json({
-        message: 'This email is not authorized for admin password recovery.'
-    });
-}
+        if (normalizedEmail !== 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'This email is not authorized for admin password recovery.'
+            });
+        }
 
         // Find admin account
         const admin = await User.findOne({
@@ -1812,25 +1812,11 @@ export const customerGoogleLogin = async (req, res) => {
             await customer.save();
 
         } else {
-            // New customer must provide phone number
-            if (!phone || !/^[0-9]{10}$/.test(phone)) {
-                return res.status(400).json({
-                    code: 'PHONE_REQUIRED',
-                    message: 'Please provide a valid 10-digit phone number.'
-                });
-            }
-
-            customer = new User({
-                name: payload.name || 'Customer',
-                email: googleEmail,
-                phone,
-                role: 'customer',
-                authProvider: 'google',
-                googleId: payload.sub,
-                emailVerified: true
+            // New customers must complete email OTP registration
+            return res.status(400).json({
+                code: 'PHONE_REQUIRED',
+                message: 'Please complete your Google registration.'
             });
-
-            await customer.save();
         }
 
         // Generate JWT
@@ -1863,6 +1849,312 @@ export const customerGoogleLogin = async (req, res) => {
         });
     }
 };
+
+
+// ==========================================
+// REQUEST GOOGLE CUSTOMER SIGNUP OTP
+// ==========================================
+
+export const requestGoogleCustomerSignupOtp = async (req, res) => {
+    try {
+        const { credential, phone } = req.body || {};
+
+        if (!credential || typeof credential !== 'string') {
+            return res.status(400).json({
+                message: 'Google credential is required.'
+            });
+        }
+
+        const cleanPhone = typeof phone === 'string' ? phone.trim() : '';
+
+        if (!/^\d{10}$/.test(cleanPhone)) {
+            return res.status(400).json({
+                message: 'Please enter a valid 10-digit mobile number.'
+            });
+        }
+
+        if (!process.env.GOOGLE_CLIENT_ID) {
+            return res.status(500).json({
+                message: 'Google authentication is not configured.'
+            });
+        }
+
+        // Verify Google credential on the backend
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+
+        if (
+            !payload ||
+            !payload.email ||
+            !payload.sub ||
+            payload.email_verified !== true
+        ) {
+            return res.status(401).json({
+                message: 'Invalid or unverified Google account.'
+            });
+        }
+
+        const googleEmail = payload.email.trim().toLowerCase();
+
+        if (googleEmail === 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'Please use Admin Login.'
+            });
+        }
+
+        // Do not create a duplicate account
+        const existingUser = await User.findOne({
+            email: googleEmail
+        });
+
+        if (existingUser) {
+            return res.status(409).json({
+                message: 'This email is already registered. Please use the correct login page.'
+            });
+        }
+
+        const otpQuery = {
+            email: googleEmail,
+            role: 'customer',
+            purpose: 'google-signup'
+        };
+
+        // 60-second resend cooldown
+        const existingOTP = await PasswordResetOTP.findOne(otpQuery);
+
+        if (
+            existingOTP &&
+            Date.now() - existingOTP.createdAt.getTime() < 60 * 1000
+        ) {
+            return res.status(429).json({
+                message: 'Please wait 60 seconds before requesting another OTP.'
+            });
+        }
+
+        await PasswordResetOTP.deleteMany(otpQuery);
+
+        const otp = crypto.randomInt(100000, 1000000).toString();
+        const otpHash = await bcrypt.hash(otp, 10);
+
+        // Store details temporarily. Do not create the account yet.
+        const otpRecord = new PasswordResetOTP({
+            email: googleEmail,
+            role: 'customer',
+            purpose: 'google-signup',
+            otpHash,
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+            attempts: 0,
+            pendingData: {
+                name: payload.name || 'Customer',
+                email: googleEmail,
+                phone: cleanPhone,
+                googleId: payload.sub
+            }
+        });
+
+        await otpRecord.save();
+
+        try {
+            await sendOtpEmail(
+                googleEmail,
+                otp,
+                'signup',
+                'customer'
+            );
+        } catch (emailError) {
+            await PasswordResetOTP.deleteMany(otpQuery);
+            throw emailError;
+        }
+
+        return res.status(200).json({
+            message: 'Verification OTP sent to your Google email address.'
+        });
+
+    } catch (error) {
+        console.error('Google customer signup OTP error:', error.message);
+
+        return res.status(500).json({
+            message: 'Unable to send verification OTP. Please try again.'
+        });
+    }
+};
+
+
+// ==========================================
+// VERIFY GOOGLE CUSTOMER SIGNUP OTP
+// ==========================================
+
+export const verifyGoogleCustomerSignupOtp = async (req, res) => {
+    try {
+        const { credential, otp } = req.body || {};
+
+        if (
+            typeof credential !== 'string' ||
+            !credential ||
+            typeof otp !== 'string' ||
+            !/^\d{6}$/.test(otp)
+        ) {
+            return res.status(400).json({
+                message: 'Please enter a valid 6-digit OTP.'
+            });
+        }
+
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.JWT_SECRET) {
+            return res.status(500).json({
+                message: 'Authentication configuration is missing.'
+            });
+        }
+
+        // Verify Google credential again
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+
+        if (
+            !payload ||
+            !payload.email ||
+            !payload.sub ||
+            payload.email_verified !== true
+        ) {
+            return res.status(401).json({
+                message: 'Invalid or unverified Google account.'
+            });
+        }
+
+        const googleEmail = payload.email.trim().toLowerCase();
+
+        const otpQuery = {
+            email: googleEmail,
+            role: 'customer',
+            purpose: 'google-signup'
+        };
+
+        const otpRecord = await PasswordResetOTP.findOne(otpQuery);
+
+        if (!otpRecord) {
+            return res.status(400).json({
+                message: 'Invalid or expired OTP. Please request a new one.'
+            });
+        }
+
+        if (otpRecord.expiresAt.getTime() <= Date.now()) {
+            await PasswordResetOTP.deleteMany(otpQuery);
+
+            return res.status(400).json({
+                message: 'OTP has expired. Please request a new one.'
+            });
+        }
+
+        if (otpRecord.attempts >= 5) {
+            await PasswordResetOTP.deleteMany(otpQuery);
+
+            return res.status(429).json({
+                message: 'Too many incorrect attempts. Please request a new OTP.'
+            });
+        }
+
+        const isOTPValid = await bcrypt.compare(
+            otp,
+            otpRecord.otpHash
+        );
+
+        if (!isOTPValid) {
+            otpRecord.attempts += 1;
+            await otpRecord.save();
+
+            return res.status(400).json({
+                message: 'Incorrect OTP. Please try again.'
+            });
+        }
+
+        const signupData = otpRecord.pendingData;
+
+        // Ensure OTP belongs to the same verified Google account
+        if (
+            !signupData ||
+            signupData.email !== googleEmail ||
+            signupData.googleId !== payload.sub ||
+            !/^\d{10}$/.test(signupData.phone || '')
+        ) {
+            await PasswordResetOTP.deleteMany(otpQuery);
+
+            return res.status(400).json({
+                message: 'Google signup session is invalid. Please register again.'
+            });
+        }
+
+        // Check for duplicate account again
+        const existingUser = await User.findOne({
+            email: googleEmail
+        });
+
+        if (existingUser) {
+            await PasswordResetOTP.deleteMany(otpQuery);
+
+            return res.status(409).json({
+                message: 'This email is already registered.'
+            });
+        }
+
+        // Create account only after successful OTP verification
+        const customer = new User({
+            name: signupData.name,
+            email: googleEmail,
+            phone: signupData.phone,
+            role: 'customer',
+            authProvider: 'google',
+            googleId: payload.sub,
+            emailVerified: true
+        });
+
+        await customer.save();
+
+        // Delete OTP after successful account creation
+        await PasswordResetOTP.deleteMany(otpQuery);
+
+        const token = jwt.sign(
+            {
+                id: customer._id.toString(),
+                role: 'customer'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(201).json({
+            message: 'Google customer registration successful.',
+            token,
+            user: {
+                id: customer._id,
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone,
+                role: customer.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Google customer OTP verification error:', error.message);
+
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: 'This email or Google account is already registered.'
+            });
+        }
+
+        return res.status(500).json({
+            message: 'Google customer registration failed. Please try again.'
+        });
+    }
+};
+
 
 // Handles POST /technician/google-login.
 export const technicianGoogleLogin = async (req, res) => {
@@ -1998,157 +2290,157 @@ export const technicianGoogleLogin = async (req, res) => {
 
 // Handles POST /technician/google-signup.
 export const technicianGoogleSignup = async (req, res) => {
-        try {
-            const {
-                credential,
-                phone,
-                specialization,
-                experience
-            } = req.body || {};
+    try {
+        const {
+            credential,
+            phone,
+            specialization,
+            experience
+        } = req.body || {};
 
-            // Validate required fields
-            if (!credential) {
-                return res.status(400).json({
-                    message: 'Google credential is required.'
-                });
-            }
-
-            if (!process.env.GOOGLE_CLIENT_ID) {
-                return res.status(500).json({
-                    message: 'Google authentication is not configured.'
-                });
-            }
-
-            if (!/^[0-9]{10}$/.test(phone || '')) {
-                return res.status(400).json({
-                    message: 'Please enter a valid 10-digit phone number.'
-                });
-            }
-
-            if (
-                typeof specialization !== 'string' ||
-                !specialization.trim() ||
-                specialization.trim().length > 100
-            ) {
-                return res.status(400).json({
-                    message: 'Please enter a valid specialization.'
-                });
-            }
-
-            if (
-                experience === undefined ||
-                experience === '' ||
-                !Number.isFinite(Number(experience)) ||
-                Number(experience) < 0 ||
-                Number(experience) > 60
-            ) {
-                return res.status(400).json({
-                    message: 'Please enter valid experience.'
-                });
-            }
-
-            if (!req.file) {
-                return res.status(400).json({
-                    message: 'Technician profile photo is required.'
-                });
-            }
-
-            // Verify Google ID token on backend
-            const ticket = await googleClient.verifyIdToken({
-                idToken: credential,
-                audience: process.env.GOOGLE_CLIENT_ID
-            });
-
-            const payload = ticket.getPayload();
-
-            if (
-                !payload ||
-                !payload.email ||
-                !payload.sub ||
-                payload.email_verified !== true
-            ) {
-                return res.status(401).json({
-                    message: 'Invalid or unverified Google account.'
-                });
-            }
-
-            const googleEmail = payload.email.trim().toLowerCase();
-
-            // Prevent Admin registration as Technician
-            if (googleEmail === 'gasconnect4@gmail.com') {
-                return res.status(403).json({
-                    message: 'Admin account cannot register as Technician.'
-                });
-            }
-
-            // Check duplicate email across all roles
-            const existingUser = await User.findOne({
-                email: googleEmail
-            });
-
-            if (existingUser) {
-                return res.status(409).json({
-                    message: 'This email is already registered. Please use the correct login page.'
-                });
-            }
-
-            // Upload profile photo to Cloudinary
-            const profilePhoto = await uploadToCloudinary(
-                req.file.buffer
-            );
-
-            if (!profilePhoto) {
-                return res.status(500).json({
-                    message: 'Unable to upload technician profile photo.'
-                });
-            }
-
-            // Create technician account
-            const technician = new User({
-                name: payload.name || 'Technician',
-                email: googleEmail,
-                phone: phone.trim(),
-                specialization: specialization.trim(),
-                experience: Number(experience),
-                profilePhoto,
-                role: 'technician',
-                authProvider: 'google',
-                googleId: payload.sub,
-                emailVerified: true,
-                approvalStatus: 'pending'
-            });
-
-            await technician.save();
-
-            return res.status(201).json({
-                message: 'Technician registration successful! Waiting for Admin approval.',
-                user: {
-                    id: technician._id,
-                    name: technician.name,
-                    email: technician.email,
-                    phone: technician.phone,
-                    role: technician.role,
-                    approvalStatus: technician.approvalStatus
-                }
-            });
-
-        } catch (error) {
-            console.error(
-                'Google technician signup error:',
-                error.message
-            );
-
-            if (error.code === 11000) {
-                return res.status(409).json({
-                    message: 'This email or Google account is already registered.'
-                });
-            }
-
-            return res.status(500).json({
-                message: 'Technician Google registration failed. Please try again.'
+        // Validate required fields
+        if (!credential) {
+            return res.status(400).json({
+                message: 'Google credential is required.'
             });
         }
-    };
+
+        if (!process.env.GOOGLE_CLIENT_ID) {
+            return res.status(500).json({
+                message: 'Google authentication is not configured.'
+            });
+        }
+
+        if (!/^[0-9]{10}$/.test(phone || '')) {
+            return res.status(400).json({
+                message: 'Please enter a valid 10-digit phone number.'
+            });
+        }
+
+        if (
+            typeof specialization !== 'string' ||
+            !specialization.trim() ||
+            specialization.trim().length > 100
+        ) {
+            return res.status(400).json({
+                message: 'Please enter a valid specialization.'
+            });
+        }
+
+        if (
+            experience === undefined ||
+            experience === '' ||
+            !Number.isFinite(Number(experience)) ||
+            Number(experience) < 0 ||
+            Number(experience) > 60
+        ) {
+            return res.status(400).json({
+                message: 'Please enter valid experience.'
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                message: 'Technician profile photo is required.'
+            });
+        }
+
+        // Verify Google ID token on backend
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+
+        if (
+            !payload ||
+            !payload.email ||
+            !payload.sub ||
+            payload.email_verified !== true
+        ) {
+            return res.status(401).json({
+                message: 'Invalid or unverified Google account.'
+            });
+        }
+
+        const googleEmail = payload.email.trim().toLowerCase();
+
+        // Prevent Admin registration as Technician
+        if (googleEmail === 'gasconnect4@gmail.com') {
+            return res.status(403).json({
+                message: 'Admin account cannot register as Technician.'
+            });
+        }
+
+        // Check duplicate email across all roles
+        const existingUser = await User.findOne({
+            email: googleEmail
+        });
+
+        if (existingUser) {
+            return res.status(409).json({
+                message: 'This email is already registered. Please use the correct login page.'
+            });
+        }
+
+        // Upload profile photo to Cloudinary
+        const profilePhoto = await uploadToCloudinary(
+            req.file.buffer
+        );
+
+        if (!profilePhoto) {
+            return res.status(500).json({
+                message: 'Unable to upload technician profile photo.'
+            });
+        }
+
+        // Create technician account
+        const technician = new User({
+            name: payload.name || 'Technician',
+            email: googleEmail,
+            phone: phone.trim(),
+            specialization: specialization.trim(),
+            experience: Number(experience),
+            profilePhoto,
+            role: 'technician',
+            authProvider: 'google',
+            googleId: payload.sub,
+            emailVerified: true,
+            approvalStatus: 'pending'
+        });
+
+        await technician.save();
+
+        return res.status(201).json({
+            message: 'Technician registration successful! Waiting for Admin approval.',
+            user: {
+                id: technician._id,
+                name: technician.name,
+                email: technician.email,
+                phone: technician.phone,
+                role: technician.role,
+                approvalStatus: technician.approvalStatus
+            }
+        });
+
+    } catch (error) {
+        console.error(
+            'Google technician signup error:',
+            error.message
+        );
+
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: 'This email or Google account is already registered.'
+            });
+        }
+
+        return res.status(500).json({
+            message: 'Technician Google registration failed. Please try again.'
+        });
+    }
+};
 
 // Handles PUT /customer/profile.
 export const updateCustomerProfile = async (req, res) => {
@@ -2334,12 +2626,12 @@ export const updateTechnicianProfile = async (req, res) => {
             const cleanPhone = String(phone).trim();
 
             if (!/^\d{10}$/.test(cleanPhone)) {
-  return res.status(400).json({
-    message: 'Phone number must be exactly 10 digits'
-  });
-}
+                return res.status(400).json({
+                    message: 'Phone number must be exactly 10 digits'
+                });
+            }
 
-technician.phone = cleanPhone;
+            technician.phone = cleanPhone;
         }
 
         // Alternative email

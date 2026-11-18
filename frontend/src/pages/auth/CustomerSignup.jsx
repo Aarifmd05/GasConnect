@@ -14,6 +14,7 @@ import {
 
 import AuthLayout from '../../components/AuthLayout';
 import logo from '../../assets/logo.png';
+import Swal from 'sweetalert2';
 
 import './CustomerSignup.css';
 import { showSuccess } from '../../utils/alerts';
@@ -64,77 +65,95 @@ function CustomerSignup() {
     };
 
 
-const handleGoogleSuccess = async (credentialResponse) => {
-    setError('');
-    setSuccess('');
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
+        setSuccess('');
 
-    if (!agreeToTerms) {
-        setError('Please agree to the Terms and Conditions.');
-        return;
-    }
-
-    try {
-        setLoading(true);
-
-        const credential = credentialResponse.credential;
-
-        let response;
-
-        try {
-            // First attempt without phone number
-            response = await axios.post(
-                `${API_URL}/google-login`,
-                { credential }
-            );
-
-        } catch (err) {
-            if (err.response?.data?.code === 'PHONE_REQUIRED') {
-
-                const phone = window.prompt(
-                    'Enter your 10-digit mobile number to complete registration:'
-                );
-
-                if (!phone) {
-                    setError('Phone number is required.');
-                    return;
-                }
-
-                if (!/^[0-9]{10}$/.test(phone.trim())) {
-                    setError('Please enter a valid 10-digit mobile number.');
-                    return;
-                }
-
-                // Retry with phone number
-                response = await axios.post(
-                    `${API_URL}/google-login`,
-                    {
-                        credential,
-                        phone: phone.trim()
-                    }
-                );
-
-            } else {
-                throw err;
-            }
+        if (!agreeToTerms) {
+            setError('Please agree to the Terms and Conditions.');
+            return;
         }
 
-        sessionStorage.setItem('token', response.data.token);
-        sessionStorage.setItem(
-            'user',
-            JSON.stringify(response.data.user)
-        );
+        try {
+            setLoading(true);
 
-        navigate('/customer/dashboard');
+            const credential = credentialResponse.credential;
 
-    } catch (err) {
-        setError(
-            err.response?.data?.message ||
-            'Google Sign-Up failed. Please try again.'
-        );
-    } finally {
-        setLoading(false);
-    }
-};
+            let response;
+
+            try {
+                // First attempt without phone number
+                response = await axios.post(
+                    `${API_URL}/google-login`,
+                    { credential }
+                );
+
+            } catch (err) {
+                if (err.response?.data?.code === 'PHONE_REQUIRED') {
+
+                    const { value: phone, isConfirmed } = await Swal.fire({
+                        title: 'Complete Your Registration',
+                        text: 'Please enter your mobile number to continue with GasConnect.',
+                        input: 'tel',
+                        inputPlaceholder: 'Enter 10-digit mobile number',
+                        inputAttributes: {
+                            maxlength: 10,
+                            inputmode: 'numeric',
+                            autocomplete: 'tel'
+                        },
+                        showCancelButton: true,
+                        confirmButtonText: 'Continue',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#0754A0',
+                        cancelButtonColor: '#64748b',
+                        reverseButtons: true,
+                        allowOutsideClick: false,
+                        inputValidator: (value) => {
+                            if (!value) {
+                                return 'Mobile number is required.';
+                            }
+
+                            if (!/^[0-9]{10}$/.test(value.trim())) {
+                                return 'Please enter a valid 10-digit mobile number.';
+                            }
+                        }
+                    });
+
+                    if (!isConfirmed) {
+                        return;
+                    }
+
+                    // Retry with phone number
+                    response = await axios.post(
+                        `${API_URL}/google-login`,
+                        {
+                            credential,
+                            phone: phone.trim()
+                        }
+                    );
+
+                } else {
+                    throw err;
+                }
+            }
+
+            sessionStorage.setItem('token', response.data.token);
+            sessionStorage.setItem(
+                'user',
+                JSON.stringify(response.data.user)
+            );
+
+            navigate('/customer/dashboard');
+
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                'Google Sign-Up failed. Please try again.'
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     // Request OTP
@@ -297,24 +316,24 @@ const handleGoogleSuccess = async (credentialResponse) => {
                 <form className="signup-form" onSubmit={handleSubmit}>
 
                     {/* Google Sign-Up */}
-                    
-<div className="google-signup">
-    {loading ? (
-        'Please wait...'
-    ) : (
-        <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-                setError('Google authentication failed.');
-            }}
-            theme="outline"
-            size="large"
-            text="continue_with"
-            shape="rectangular"
-            width="350"
-        />
-    )}
-</div>
+
+                    <div className="google-signup">
+                        {loading ? (
+                            'Please wait...'
+                        ) : (
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => {
+                                    setError('Google authentication failed.');
+                                }}
+                                theme="outline"
+                                size="large"
+                                text="continue_with"
+                                shape="rectangular"
+                                width="400"
+                            />
+                        )}
+                    </div>
 
 
                     <div className="signup-divider">
@@ -540,6 +559,13 @@ const handleGoogleSuccess = async (credentialResponse) => {
                 </form>
 
             )}
+            {/* Outside the form box */}
+            <div className="back-home-wrapper">
+                <Link to="/" className="back-home-btn">
+                    <ArrowLeft size={18} />
+                    Back to Home
+                </Link>
+            </div>
 
         </AuthLayout>
     );

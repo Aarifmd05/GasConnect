@@ -358,7 +358,6 @@ function Home() {
                         <a href="#home">Home</a>
                         <a href="#about">About</a>
                         <a href="#services">Services</a>
-                        <a href="#contact">Contact</a>
                     </div>
 
                     {/* Account Links */}
@@ -385,7 +384,7 @@ function Home() {
                         </a>
 
                         <a
-                            href="https://www.instagram.com/YOUR_USERNAME/"
+                            href="https://www.instagram.com/sogood.bheem?lqvp=MXE2OTRmMno1bm5jMA=="
                             target="_blank"
                             rel="noopener noreferrer"
                         >

@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 import AuthLayout from '../../components/AuthLayout';
 import logo from '../../assets/logo.png';
 import './CustomerLogin.css';
+import Swal from 'sweetalert2';
 
 function CustomerLogin() {
     const navigate = useNavigate();
@@ -49,6 +50,7 @@ function CustomerLogin() {
 
     // Google login
 
+
     const handleGoogleSuccess = async (credentialResponse) => {
         setError('');
 
@@ -57,64 +59,149 @@ function CustomerLogin() {
 
             const credential = credentialResponse.credential;
 
+            // STEP 1: Try normal Google login first
             let response;
 
             try {
-                // First attempt
                 response = await axios.post(
                     'http://localhost:3006/api/users/customer/google-login',
                     { credential }
                 );
 
+                // Existing customer login successful
+                sessionStorage.setItem('token', response.data.token);
+                sessionStorage.setItem(
+                    'user',
+                    JSON.stringify(response.data.user)
+                );
+
+                navigate('/customer/dashboard');
+                return;
+
             } catch (err) {
-                // New customer needs a phone number
-                if (err.response?.data?.code === 'PHONE_REQUIRED') {
-
-                    const phone = window.prompt(
-                        'Enter your 10-digit mobile number to complete registration:'
-                    );
-
-                    if (!phone) {
-                        setError('Phone number is required for registration.');
-                        return;
-                    }
-
-                    if (!/^[0-9]{10}$/.test(phone.trim())) {
-                        setError('Please enter a valid 10-digit phone number.');
-                        return;
-                    }
-
-                    // Retry with phone number
-                    response = await axios.post(
-                        'http://localhost:3006/api/users/customer/google-login',
-                        {
-                            credential,
-                            phone: phone.trim()
-                        }
-                    );
-
-                } else {
+                if (err.response?.data?.code !== 'PHONE_REQUIRED') {
                     throw err;
                 }
             }
 
+            // STEP 2: Ask for mobile number
+            const { value: phone, isConfirmed: phoneConfirmed } =
+                await Swal.fire({
+                    title: 'Complete Your Registration',
+                    text: 'Enter your mobile number to continue with GasConnect.',
+                    input: 'tel',
+                    inputPlaceholder: 'Enter 10-digit mobile number',
+                    inputAttributes: {
+                        maxlength: 10,
+                        inputmode: 'numeric',
+                        autocomplete: 'tel'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Continue',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#0754A0',
+                    cancelButtonColor: '#64748b',
+                    reverseButtons: true,
+                    allowOutsideClick: false,
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Mobile number is required.';
+                        }
+
+                        if (!/^[0-9]{10}$/.test(value.trim())) {
+                            return 'Enter a valid 10-digit mobile number.';
+                        }
+                    }
+                });
+
+            if (!phoneConfirmed) return;
+
+            // STEP 3: Request OTP using verified Google email
+            await axios.post(
+                'http://localhost:3006/api/users/customer/google-signup/request-otp',
+                {
+                    credential,
+                    phone: phone.trim()
+                }
+            );
+
+            // STEP 4: Ask customer to enter email OTP
+            const { value: otp, isConfirmed: otpConfirmed } =
+                await Swal.fire({
+                    title: 'Verify Your Email',
+                    text: 'A 6-digit OTP has been sent to your Google email address.',
+                    input: 'text',
+                    inputPlaceholder: 'Enter 6-digit OTP',
+                    inputAttributes: {
+                        maxlength: 6,
+                        inputmode: 'numeric',
+                        autocomplete: 'one-time-code'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Verify & Register',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#0754A0',
+                    cancelButtonColor: '#64748b',
+                    reverseButtons: true,
+                    allowOutsideClick: false,
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'OTP is required.';
+                        }
+
+                        if (!/^[0-9]{6}$/.test(value.trim())) {
+                            return 'Enter a valid 6-digit OTP.';
+                        }
+                    }
+                });
+
+            if (!otpConfirmed) return;
+
+            // STEP 5: Verify OTP and create customer account
+            response = await axios.post(
+                'http://localhost:3006/api/users/customer/google-signup/verify-otp',
+                {
+                    credential,
+                    otp: otp.trim()
+                }
+            );
+
+            // STEP 6: Save login details
             sessionStorage.setItem('token', response.data.token);
             sessionStorage.setItem(
                 'user',
                 JSON.stringify(response.data.user)
             );
 
+            await Swal.fire({
+                icon: 'success',
+                title: 'Registration Successful!',
+                text: 'Your GasConnect customer account has been created.',
+                confirmButtonColor: '#0754A0'
+            });
+
+            // STEP 7: Navigate to dashboard
             navigate('/customer/dashboard');
 
         } catch (err) {
-            setError(
+            const message =
                 err.response?.data?.message ||
-                'Google login failed. Please try again.'
-            );
+                'Google registration failed. Please try again.';
+
+            setError(message);
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Unable to Continue',
+                text: message,
+                confirmButtonColor: '#0754A0'
+            });
+
         } finally {
             setGoogleLoading(false);
         }
     };
+
 
 
     return (
@@ -200,7 +287,7 @@ function CustomerLogin() {
                             size="large"
                             text="continue_with"
                             shape="rectangular"
-                            width="280"
+                            width="400"
                         />
                     )}
                 </div>
@@ -211,6 +298,14 @@ function CustomerLogin() {
                 </p>
 
             </form>
+
+            {/* Outside the form box */}
+            <div className="back-home-wrapper">
+                <Link to="/" className="back-home-btn">
+                    <ArrowLeft size={18} />
+                    Back to Home
+                </Link>
+            </div>
 
         </AuthLayout>
     );

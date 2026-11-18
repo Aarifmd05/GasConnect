@@ -10,6 +10,7 @@ import {
     getTechnicianBookings,
     updateBookingStatusAsTechnician,
     cancelBookingAsCustomer,
+    cancelBookingAsTechnician,
     verifyBookingCompletion
 } from '../controllers/bookingController.js';
 
@@ -38,6 +39,9 @@ router.put('/technician/update-status/:id', authMiddleware, updateBookingStatusA
 
 // PUT /customer/cancel/:id
 router.put('/customer/cancel/:id', authMiddleware, cancelBookingAsCustomer);
+
+// PUT /technician/cancel/:id
+router.put('/technician/cancel/:id', authMiddleware, cancelBookingAsTechnician);
 router.put(
     '/technician/verify-completion/:id',
     authMiddleware,

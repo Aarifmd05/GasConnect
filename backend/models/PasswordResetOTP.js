@@ -21,7 +21,7 @@ const passwordResetOTPSchema = new mongoose.Schema(
         // Identifies why the OTP was requested
         purpose: {
             type: String,
-            enum: ['signup', 'password-reset'],
+            enum: ['signup', 'password-reset', 'google-signup'],
             default: 'password-reset',
             required: true
         },

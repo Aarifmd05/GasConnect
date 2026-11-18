@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, ArrowLeft } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 
 import AuthLayout from '../../components/AuthLayout';
@@ -45,36 +45,36 @@ function TechnicianLogin() {
     };
 
 
-const handleGoogleSuccess = async (credentialResponse) => {
-    setError('');
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
 
-    try {
-        setLoading(true);
+        try {
+            setLoading(true);
 
-        const response = await axios.post(
-            'http://localhost:3006/api/users/technician/google-login',
-            {
-                credential: credentialResponse.credential
-            }
-        );
+            const response = await axios.post(
+                'http://localhost:3006/api/users/technician/google-login',
+                {
+                    credential: credentialResponse.credential
+                }
+            );
 
-        sessionStorage.setItem('token', response.data.token);
-        sessionStorage.setItem(
-            'user',
-            JSON.stringify(response.data.user)
-        );
+            sessionStorage.setItem('token', response.data.token);
+            sessionStorage.setItem(
+                'user',
+                JSON.stringify(response.data.user)
+            );
 
-        navigate('/technician/dashboard');
+            navigate('/technician/dashboard');
 
-    } catch (err) {
-        setError(
-            err.response?.data?.message ||
-            'Google login failed. Please try again.'
-        );
-    } finally {
-        setLoading(false);
-    }
-};
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                'Google login failed. Please try again.'
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     return (
@@ -84,24 +84,24 @@ const handleGoogleSuccess = async (credentialResponse) => {
             </div>
 
             <form className="technician-login-form" onSubmit={handleSubmit}>
-                
-<div className="technician-google-button">
-    {loading ? (
-        'Signing in with Google...'
-    ) : (
-        <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-                setError('Google authentication failed.');
-            }}
-            theme="outline"
-            size="large"
-            text="continue_with"
-            shape="rectangular"
-            width="300"
-        />
-    )}
-</div>
+
+                <div className="technician-google-button">
+                    {loading ? (
+                        'Signing in with Google...'
+                    ) : (
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => {
+                                setError('Google authentication failed.');
+                            }}
+                            theme="outline"
+                            size="large"
+                            text="continue_with"
+                            shape="rectangular"
+                            width="400"
+                        />
+                    )}
+                </div>
 
 
                 <div className="technician-login-divider">
@@ -162,6 +162,13 @@ const handleGoogleSuccess = async (credentialResponse) => {
                     <Link to="/technician/signup">Sign Up</Link>
                 </p>
             </form>
+            {/* Outside the form box */}
+            <div className="back-home-wrapper">
+                <Link to="/" className="back-home-btn">
+                    <ArrowLeft size={18} />
+                    Back to Home
+                </Link>
+            </div>
         </AuthLayout>
     );
 }

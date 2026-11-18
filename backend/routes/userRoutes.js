@@ -19,6 +19,8 @@ import {
     requestCustomerPasswordReset,
     verifyCustomerPasswordResetOtp,
     resetCustomerPassword,
+    requestGoogleCustomerSignupOtp,
+    verifyGoogleCustomerSignupOtp,
     adminLogin,
     customerLogin,
     adminGoogleLogin,
@@ -153,5 +155,11 @@ router.patch('/customer/addresses/:addressId/default', authMiddleware, setDefaul
 
 // DELETE /customer/addresses/:addressId
 router.delete('/customer/addresses/:addressId', authMiddleware, deleteCustomerAddress);
+
+// POST /customer/google-signup/request-otp
+router.post('/customer/google-signup/request-otp',requestGoogleCustomerSignupOtp);
+
+// POST /customer/google-signup/verify-otp
+router.post('/customer/google-signup/verify-otp',verifyGoogleCustomerSignupOtp);
 
 export default router;

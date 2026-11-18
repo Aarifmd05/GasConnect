@@ -70,7 +70,8 @@ const bookingSchema = new mongoose.Schema({
             'rejected',
             'in-progress',
             'completed',
-            'cancelled'
+            'cancelled',
+            'reassignment-needed'
         ],
         default: 'pending'
     },
@@ -96,7 +97,30 @@ const bookingSchema = new mongoose.Schema({
     declinedBy: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
+    }],
+
+    cancelledBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+
+    cancellationReason: {
+        type: String,
+        default: ''
+    },
+
+    cancellationDetails: {
+        type: String,
+        trim: true,
+        maxlength: 500,
+        default: ''
+    },
+
+    cancelledAt: {
+        type: Date,
+        default: null
+    },
 
 }, {
     timestamps: true

@@ -12,6 +12,8 @@ import {
   PlayCircle,
   Navigation,
   Image as ImageIcon,
+  X,
+  AlertTriangle,
   ShieldCheck
 } from 'lucide-react';
 
@@ -27,6 +29,17 @@ export default function AssignedJobs() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('all');
+  const [cancelJobId, setCancelJobId] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelDetails, setCancelDetails] = useState('');
+
+  const cancellationReasons = [
+    'Taking longer than expected',
+    'Unable to reach customer',
+    'Emergency / Personal reason',
+    'Vehicle or equipment problem',
+    'Other'
+  ];
   const [otpInputs, setOtpInputs] = useState({});
 
   const fetchJobs = useCallback(async () => {
@@ -105,6 +118,88 @@ export default function AssignedJobs() {
     } catch (err) {
       setError(err.message || 'Unable to update job.');
       fetchJobs();
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // Open the cancellation form for an accepted or in-progress job.
+  const openCancelModal = jobId => {
+    setCancelJobId(jobId);
+    setCancelReason('');
+    setCancelDetails('');
+    setError('');
+    setMessage('');
+  };
+
+  const closeCancelModal = () => {
+    if (processingId !== null) return;
+    setCancelJobId(null);
+    setCancelReason('');
+    setCancelDetails('');
+  };
+
+  // Send the cancellation reason to the backend.
+  const cancelService = async event => {
+    event.preventDefault();
+
+    if (!cancelReason) {
+      setError('Please select a cancellation reason.');
+      return;
+    }
+
+    if (cancelReason === 'Other' && cancelDetails.trim().length < 5) {
+      setError('Please enter at least 5 characters explaining the reason.');
+      return;
+    }
+
+    if (cancelReason === 'Other' && cancelDetails.trim().length > 500) {
+      setError('The reason cannot exceed 500 characters.');
+      return;
+    }
+
+    const jobId = cancelJobId;
+
+    try {
+      setProcessingId(jobId);
+      setError('');
+      setMessage('');
+
+      const response = await fetch(
+        `${API_URL}/bookings/technician/cancel/${jobId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            reason: cancelReason,
+            details: cancelReason === 'Other' ? cancelDetails.trim() : ''
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to cancel this service.');
+      }
+
+      setJobs(currentJobs =>
+        currentJobs.map(job =>
+          job._id === jobId
+            ? { ...job, ...(data.booking || {}), status: data.booking?.status || 'reassignment-needed' }
+            : job
+        )
+      );
+
+      setMessage('Service cancelled successfully. Waiting for admin reassignment.');
+      setCancelJobId(null);
+      setCancelReason('');
+      setCancelDetails('');
+    } catch (err) {
+      setError(err.message || 'Unable to cancel this service.');
     } finally {
       setProcessingId(null);
     }
@@ -440,6 +535,7 @@ export default function AssignedJobs() {
                   )}
                 </div>
 
+
                 <div className="assigned-job-actions">
                   <button
                     className="assigned-navigation-btn"
@@ -459,7 +555,20 @@ export default function AssignedJobs() {
                       {processingId === job._id ? 'Updating...' : 'Start Repair'}
                     </button>
                   )}
+
+                  {['accepted', 'in-progress'].includes(job.status) && (
+                    <button
+                      type="button"
+                      className="assigned-cancel-btn"
+                      onClick={() => openCancelModal(job._id)}
+                      disabled={processingId !== null}
+                    >
+                      <X size={17} />
+                      Cancel Service
+                    </button>
+                  )}
                 </div>
+
 
                 {job.status === 'in-progress' && (
                   <div className="assigned-otp-section">
@@ -512,6 +621,100 @@ export default function AssignedJobs() {
               </article>
             );
           })}
+        </div>
+      )}
+
+      {cancelJobId && (
+        <div className="assigned-cancel-overlay" onMouseDown={closeCancelModal}>
+          <section
+            className="assigned-cancel-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assigned-cancel-title"
+            onMouseDown={event => event.stopPropagation()}
+          >
+            <div className="assigned-cancel-modal-header">
+              <div className="assigned-cancel-heading-icon">
+                <AlertTriangle size={22} />
+              </div>
+              <button
+                type="button"
+                className="assigned-cancel-close"
+                onClick={closeCancelModal}
+                disabled={processingId !== null}
+                aria-label="Close cancellation dialog"
+              >
+                <X size={20} />
+              </button>
+              <h3 id="assigned-cancel-title">Cancel Service</h3>
+              <p>Please select why you are unable to continue this service.</p>
+            </div>
+
+            <form onSubmit={cancelService}>
+              <label className="assigned-cancel-label" htmlFor="cancel-reason">
+                Cancellation reason <span>*</span>
+              </label>
+              <select
+                id="cancel-reason"
+                className="assigned-cancel-select"
+                value={cancelReason}
+                onChange={event => {
+                  setCancelReason(event.target.value);
+                  setError('');
+                  if (event.target.value !== 'Other') setCancelDetails('');
+                }}
+                required
+                disabled={processingId !== null}
+              >
+                <option value="">Select a reason</option>
+                {cancellationReasons.map(reason => (
+                  <option key={reason} value={reason}>{reason}</option>
+                ))}
+              </select>
+
+              {cancelReason === 'Other' && (
+                <div className="assigned-cancel-other">
+                  <label className="assigned-cancel-label" htmlFor="cancel-details">
+                    Explain your reason <span>*</span>
+                  </label>
+                  <textarea
+                    id="cancel-details"
+                    className="assigned-cancel-textarea"
+                    value={cancelDetails}
+                    onChange={event => setCancelDetails(event.target.value)}
+                    placeholder="Enter the reason (minimum 5 characters)"
+                    rows={4}
+                    maxLength={500}
+                    required
+                    disabled={processingId !== null}
+                  />
+                  <small>{cancelDetails.length}/500 characters</small>
+                </div>
+              )}
+
+              <p className="assigned-cancel-note">
+                The customer will be notified, and this booking will be sent to the admin for reassignment.
+              </p>
+
+              <div className="assigned-cancel-modal-actions">
+                <button
+                  type="button"
+                  className="assigned-cancel-back"
+                  onClick={closeCancelModal}
+                  disabled={processingId !== null}
+                >
+                  Keep Service
+                </button>
+                <button
+                  type="submit"
+                  className="assigned-cancel-submit"
+                  disabled={processingId !== null || !cancelReason}
+                >
+                  {processingId === cancelJobId ? 'Cancelling...' : 'Confirm Cancellation'}
+                </button>
+              </div>
+            </form>
+          </section>
         </div>
       )}
     </div>

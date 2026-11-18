@@ -99,113 +99,113 @@ function LocationSelector({ onSelect, selectedAddress }) {
     };
 
     // Capture current GPS coordinates
-    
-// Get current GPS location and automatically fill address
-const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-        setError('Geolocation is not supported by your browser.');
-        return;
-    }
 
-    setGpsLoading(true);
-    setError('');
-
-    navigator.geolocation.getCurrentPosition(
-        async (position) => {
-            try {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-
-                // Reverse Geocoding using OpenStreetMap
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&addressdetails=1`,
-                    {
-                        headers: {
-                            'Accept-Language': 'en'
-                        }
-                    }
-                );
-
-                if (!response.ok) {
-                    throw new Error('Unable to fetch address details.');
-                }
-
-                const data = await response.json();
-                const address = data.address || {};
-
-                // Extract complete address
-                const completeAddress = [
-                    address.house_number,
-                    address.road,
-                    address.neighbourhood,
-                    address.suburb,
-                    address.residential
-                ]
-                    .filter(Boolean)
-                    .filter((value, index, array) =>
-                        array.indexOf(value) === index
-                    )
-                    .join(', ');
-
-                // Extract city
-                const city =
-                    address.city ||
-                    address.town ||
-                    address.village ||
-                    address.municipality ||
-                    address.county ||
-                    '';
-
-                // Automatically populate all form fields
-                setForm(prev => ({
-                    ...prev,
-
-                    fullAddress:
-                        completeAddress || data.display_name || '',
-
-                    city: city,
-
-                    state: address.state || '',
-
-                    pincode: address.postcode || '',
-
-                    location: {
-                        latitude: latitude,
-                        longitude: longitude
-                    }
-                }));
-
-                setError('');
-
-            } catch (error) {
-                console.error('Reverse geocoding error:', error);
-                setError(
-                    'GPS detected, but unable to fetch address. Please enter it manually.'
-                );
-            } finally {
-                setGpsLoading(false);
-            }
-        },
-
-        (error) => {
-            console.error('GPS Error:', error);
-
-            setError(
-                error.code === 1
-                    ? 'Location permission denied. Please allow location access.'
-                    : 'Unable to access your location. Please try again.'
-            );
-
-            setGpsLoading(false);
-        },
-
-        {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
+    // Get current GPS location and automatically fill address
+    const getCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            setError('Geolocation is not supported by your browser.');
+            return;
         }
-    );
-};
+
+        setGpsLoading(true);
+        setError('');
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Reverse Geocoding using OpenStreetMap
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+                        {
+                            headers: {
+                                'Accept-Language': 'en'
+                            }
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error('Unable to fetch address details.');
+                    }
+
+                    const data = await response.json();
+                    const address = data.address || {};
+
+                    // Extract complete address
+                    const completeAddress = [
+                        address.house_number,
+                        address.road,
+                        address.neighbourhood,
+                        address.suburb,
+                        address.residential
+                    ]
+                        .filter(Boolean)
+                        .filter((value, index, array) =>
+                            array.indexOf(value) === index
+                        )
+                        .join(', ');
+
+                    // Extract city
+                    const city =
+                        address.city ||
+                        address.town ||
+                        address.village ||
+                        address.municipality ||
+                        address.county ||
+                        '';
+
+                    // Automatically populate all form fields
+                    setForm(prev => ({
+                        ...prev,
+
+                        fullAddress:
+                            completeAddress || data.display_name || '',
+
+                        city: city,
+
+                        state: address.state || '',
+
+                        pincode: address.postcode || '',
+
+                        location: {
+                            latitude: latitude,
+                            longitude: longitude
+                        }
+                    }));
+
+                    setError('');
+
+                } catch (error) {
+                    console.error('Reverse geocoding error:', error);
+                    setError(
+                        'GPS detected, but unable to fetch address. Please enter it manually.'
+                    );
+                } finally {
+                    setGpsLoading(false);
+                }
+            },
+
+            (error) => {
+                console.error('GPS Error:', error);
+
+                setError(
+                    error.code === 1
+                        ? 'Location permission denied. Please allow location access.'
+                        : 'Unable to access your location. Please try again.'
+                );
+
+                setGpsLoading(false);
+            },
+
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            }
+        );
+    };
 
 
     const openAddForm = () => {
@@ -414,9 +414,8 @@ const getCurrentLocation = () => {
 
                         return (
                             <div
-                                className={`location-card ${
-                                    isSelected ? 'selected' : ''
-                                }`}
+                                className={`location-card ${isSelected ? 'selected' : ''
+                                    }`}
                                 key={address._id}
                             >
                                 <div
@@ -645,11 +644,11 @@ const getCurrentLocation = () => {
                             </button>
 
                             {form.location && (
-    <p className="gps-success">
-        <Check size={15} />
-        Location and address details fetched successfully.
-    </p>
-)}
+                                <p className="gps-success">
+                                    <Check size={15} />
+                                    Location and address details fetched successfully.
+                                </p>
+                            )}
 
                             <label className="location-default-checkbox">
                                 <input

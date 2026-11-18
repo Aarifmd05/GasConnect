@@ -217,14 +217,13 @@ function BookingsSection({
                                     </td>
 
                                     <td>
-                                        {['pending', 'rejected'].includes(booking.status) ? (
+
+                                        {['pending', 'rejected', 'reassignment-needed'].includes(booking.status) ? (
 
                                             <div className="admin-booking-assign">
 
                                                 <select
-                                                    value={
-                                                        selectedTechnicians[booking._id] || ''
-                                                    }
+                                                    value={selectedTechnicians[booking._id] || ''}
                                                     onChange={(e) =>
                                                         setSelectedTechnicians(prev => ({
                                                             ...prev,
@@ -236,28 +235,47 @@ function BookingsSection({
                                                         Select technician
                                                     </option>
 
-                                                    {approvedTechnicians.map(technician => (
-                                                        <option
-                                                            key={technician._id}
-                                                            value={technician._id}
-                                                        >
-                                                            {technician.name}
-                                                        </option>
-                                                    ))}
+                                                    {approvedTechnicians
+                                                        .filter(technician => {
+                                                            if (booking.status !== 'reassignment-needed') {
+                                                                return true;
+                                                            }
+
+                                                            const previousTechnicianId =
+                                                                booking.cancelledBy?._id ||
+                                                                booking.technician?._id;
+
+                                                            return technician._id !== previousTechnicianId;
+                                                        })
+                                                        .map(technician => (
+                                                            <option
+                                                                key={technician._id}
+                                                                value={technician._id}
+                                                            >
+                                                                {technician.name}
+                                                            </option>
+                                                        ))}
                                                 </select>
 
                                                 <button
-                                                    onClick={() =>
-                                                        handleAssignTechnician(booking._id)
-                                                    }
+                                                    onClick={() => handleAssignTechnician(booking._id, selectedTechnicians[booking._id])}
                                                     disabled={
                                                         assigningBooking === booking._id ||
-                                                        approvedTechnicians.length === 0
+                                                        !selectedTechnicians[booking._id] ||
+                                                        approvedTechnicians.filter(technician =>
+                                                            booking.status !== 'reassignment-needed' ||
+                                                            technician._id !== (
+                                                                booking.cancelledBy?._id ||
+                                                                booking.technician?._id
+                                                            )
+                                                        ).length === 0
                                                     }
                                                 >
                                                     {assigningBooking === booking._id
                                                         ? 'Assigning...'
-                                                        : 'Assign'}
+                                                        : booking.status === 'reassignment-needed'
+                                                            ? 'Reassign'
+                                                            : 'Assign'}
                                                 </button>
 
                                             </div>
