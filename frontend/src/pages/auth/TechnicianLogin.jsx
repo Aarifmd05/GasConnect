@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, ArrowLeft ,  Eye,
+    EyeOff} from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 
 import AuthLayout from '../../components/AuthLayout';
@@ -79,89 +80,106 @@ function TechnicianLogin() {
 
     return (
         <AuthLayout logo={logo} illustration={mascot}>
-            <div className="technician-login-heading">
-                <h1>Log in to your existing profile</h1>
-            </div>
+           <div className="technician-login-heading">
+    <h1>Welcome Back!</h1>
+    <p>Log in to your existing profile</p>
+</div>
+            
+<form className="technician-login-form" onSubmit={handleSubmit}>
 
-            <form className="technician-login-form" onSubmit={handleSubmit}>
+    {/* Email */}
+    <div className="technician-login-input">
+        <Mail />
+        <input
+            type="email"
+            placeholder="user@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+        />
+    </div>
 
-                <div className="technician-google-button">
-                    {loading ? (
-                        'Signing in with Google...'
-                    ) : (
-                        <GoogleLogin
-                            onSuccess={handleGoogleSuccess}
-                            onError={() => {
-                                setError('Google authentication failed.');
-                            }}
-                            theme="outline"
-                            size="large"
-                            text="continue_with"
-                            shape="rectangular"
-                            width="400"
-                        />
-                    )}
-                </div>
+    {/* Password */}
+    <div className="technician-login-input">
+        <Lock />
+        <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+        />
 
+        <button
+            type="button"
+            className="technician-password-toggle"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+        >
+            {showPassword ? <EyeOff /> : <Eye />}
+        </button>
+    </div>
 
-                <div className="technician-login-divider">
-                    <span>or</span>
-                </div>
+    {/* Forgot Password / Show Password */}
+    <div className="technician-login-options">
+        <Link to="/technician/forgot-password">
+            Forgot password?
+        </Link>
 
-                <div className="technician-login-input">
-                    <Mail />
-                    <input
-                        type="email"
-                        placeholder="user@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
+        {/* <label>
+            <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+            />
+            Show password
+        </label> */}
+    </div>
 
-                <div className="technician-login-input">
-                    <Lock />
-                    <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
+    {/* Error */}
+    {error && (
+        <p className="technician-login-error">
+            {error}
+        </p>
+    )}
 
-                <div className="technician-login-options">
-                    <Link to="/technician/forgot-password">
-                        Forgot password?
-                    </Link>
+    {/* Sign In */}
+    <button
+        type="submit"
+        className="technician-login-submit"
+        disabled={loading}
+    >
+        {loading ? 'Signing in...' : 'Sign In'}
+    </button>
 
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={showPassword}
-                            onChange={(e) => setShowPassword(e.target.checked)}
-                        />
-                        Show password
-                    </label>
-                </div>
+    {/* OR Divider */}
+    <div className="technician-login-divider">
+        <span>OR</span>
+    </div>
 
-                {error && (
-                    <p className="technician-login-error">{error}</p>
-                )}
+    {/* Google Login */}
+    <div className="technician-google-button">
+        <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+                setError('Google authentication failed.');
+            }}
+            theme="outline"
+            size="large"
+            text="continue_with"
+            shape="rectangular"
+            width="400"
+        />
+    </div>
 
-                <button
-                    type="submit"
-                    className="technician-login-submit"
-                    disabled={loading}
-                >
-                    {loading ? 'Signing in...' : 'Sign In'}
-                </button>
+    {/* Signup */}
+    <p className="technician-login-signup">
+        Don't have an account?{' '}
+        <Link to="/technician/signup">Sign Up</Link>
+    </p>
 
-                <p className="technician-login-signup">
-                    Don't have an account?{' '}
-                    <Link to="/technician/signup">Sign Up</Link>
-                </p>
-            </form>
+</form>
+
             {/* Outside the form box */}
             <div className="back-home-wrapper">
                 <Link to="/" className="back-home-btn">

@@ -250,14 +250,14 @@ function CustomerLogin() {
                         Forgot password?
                     </Link>
 
-                    <label>
+                    {/* <label>
                         <input
                             type="checkbox"
                             checked={showPassword}
                             onChange={(e) => setShowPassword(e.target.checked)}
                         />
                         Show password
-                    </label>
+                    </label> */}
                 </div>
 
                 {error && <p className="login-error">{error}</p>}
