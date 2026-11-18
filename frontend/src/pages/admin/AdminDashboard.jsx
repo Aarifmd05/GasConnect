@@ -579,11 +579,11 @@ function AdminDashboard() {
         }
     };
 
-    useEffect(() => {
-        if (activeMenu === 'Bookings') {
-            fetchBookings();
-        }
-    }, [activeMenu]);
+   useEffect(() => {
+    if (activeMenu === 'Bookings' || activeMenu === 'Dashboard') {
+        fetchBookings();
+    }
+}, [activeMenu]);
 
     // ==========================================
     // REPAIR TYPES MANAGEMENT
@@ -1442,6 +1442,7 @@ function AdminDashboard() {
                             statsError={statsError}
                             dashboardCards={dashboardCards}
                             handleMenuClick={handleMenuClick}
+                            bookings={bookings}
                         />
                     )}
 

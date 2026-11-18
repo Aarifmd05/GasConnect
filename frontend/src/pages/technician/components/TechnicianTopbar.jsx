@@ -15,7 +15,8 @@ export default function TechnicianTopbar({
     notifications = [],
     readNotifications = [],
     unreadCount = 0,
-    markAsRead
+    markAsRead,
+    markAllAsRead
 }) {
     const [showNotifications, setShowNotifications] = useState(false);
 
@@ -53,10 +54,8 @@ useEffect(() => {
 }, []);
 
     const handleMarkAllAsRead = () => {
-        recentNotifications.forEach((notification) => {
-            markAsRead?.(notification.id);
-        });
-    };
+    markAllAsRead?.();
+};
 
     return (
         <header className="technician-topbar">

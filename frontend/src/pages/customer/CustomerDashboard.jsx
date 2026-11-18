@@ -230,7 +230,7 @@ const CustomerDashboard = () => {
         }
 
         return {
-          id: `${booking._id}-${booking.status}`,
+          id: booking._id,
           bookingId: booking._id,
           title,
           message,
@@ -266,35 +266,41 @@ const CustomerDashboard = () => {
 
   // Mark one notification as read
   const markAsRead = (id) => {
-    setReadNotifications(previous => {
-      const updated = previous.includes(id)
-        ? previous
-        : [...previous, id];
+    setReadNotifications((previous) => {
+        if (previous.includes(id)) {
+            return previous;
+        }
 
-      sessionStorage.setItem(
-        'gasconnect_read_notifications',
-        JSON.stringify(updated)
-      );
+        const updated = [...previous, id];
 
-      return updated;
+        sessionStorage.setItem(
+            'gasconnect_read_notifications',
+            JSON.stringify(updated)
+        );
+
+        return updated;
     });
-  };
+};
 
   // Mark all notifications as read
   const markAllAsRead = () => {
-    const allIds = notifications.map(notification => notification.id);
+    const allIds = notifications.map(
+        notification => notification.id
+    );
 
-    setReadNotifications(previous => {
-      const updated = [...new Set([...previous, ...allIds])];
+    setReadNotifications((previous) => {
+        const updated = [
+            ...new Set([...previous, ...allIds])
+        ];
 
-      sessionStorage.setItem(
-        'gasconnect_read_notifications',
-        JSON.stringify(updated)
-      );
+        sessionStorage.setItem(
+            'gasconnect_read_notifications',
+            JSON.stringify(updated)
+        );
 
-      return updated;
+        return updated;
     });
-  };
+};
 
   // Address selection
   const handleAddressSelect = (address) => {

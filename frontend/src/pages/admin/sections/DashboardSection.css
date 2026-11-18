@@ -75,3 +75,85 @@ color: var(--gc-muted);
 :root[data-theme="dark"] .admin-empty-activity h3 {
 color: var(--gc-text);
 }
+
+.admin-recent-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.admin-activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-activity-icon {
+    min-width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #eaf2ff;
+    color: #0754a0;
+}
+
+.admin-activity-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-activity-details h3 {
+    font-size: 13px;
+    margin: 0 0 4px;
+}
+
+.admin-activity-details p {
+    font-size: 11px;
+    margin: 0 0 5px;
+}
+
+.admin-activity-details span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: #8993a4;
+}
+
+.admin-activity-status {
+    font-size: 10px;
+    text-transform: capitalize;
+    padding: 5px 8px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.admin-activity-status.completed {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-activity-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.admin-activity-status.cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.admin-view-all-activity {
+    margin-top: 15px;
+    border: none;
+    background: transparent;
+    color: #0754a0;
+    font-weight: 600;
+    cursor: pointer;
+}

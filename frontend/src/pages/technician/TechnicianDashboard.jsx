@@ -134,7 +134,7 @@ export default function TechnicianDashboard() {
                     if (!details) return null;
 
                     return {
-                        id: `${booking._id}-${booking.status}`,
+                        id:booking._id,
                         bookingId: booking._id,
                         title: details.title,
                         message: details.message,
@@ -162,14 +162,39 @@ export default function TechnicianDashboard() {
     }, [fetchNotifications]);
 
     const markAsRead = (notificationId) => {
-        setReadNotifications((previous) => {
-            if (previous.includes(notificationId)) return previous;
+    setReadNotifications((previous) => {
+        if (previous.includes(notificationId)) {
+            return previous;
+        }
 
-            const updated = [...previous, notificationId];
-            sessionStorage.setItem(READ_KEY, JSON.stringify(updated));
-            return updated;
-        });
-    };
+        const updated = [...previous, notificationId];
+
+        sessionStorage.setItem(
+            READ_KEY,
+            JSON.stringify(updated)
+        );
+
+        return updated;
+    });
+};
+const markAllAsRead = () => {
+    const allIds = notifications.map(
+        notification => notification.id
+    );
+
+    setReadNotifications((previous) => {
+        const updated = [
+            ...new Set([...previous, ...allIds])
+        ];
+
+        sessionStorage.setItem(
+            READ_KEY,
+            JSON.stringify(updated)
+        );
+
+        return updated;
+    });
+};
 
     const unreadCount = notifications.filter(
         (notification) => !readNotifications.includes(notification.id)
@@ -217,6 +242,7 @@ export default function TechnicianDashboard() {
                     readNotifications={readNotifications}
                     unreadCount={unreadCount}
                     markAsRead={markAsRead}
+                    markAllAsRead={markAllAsRead}
                 />
 
                 <div className="technician-content">
