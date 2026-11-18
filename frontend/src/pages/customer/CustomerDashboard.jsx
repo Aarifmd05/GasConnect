@@ -378,6 +378,7 @@ const CustomerDashboard = () => {
           onOpenNotifications={() => {
             handleSectionChange('notifications');
           }}
+          onOpenProfile={() => setActiveSection('profile')}
         />
 
         {/* PAGE CONTENT */}

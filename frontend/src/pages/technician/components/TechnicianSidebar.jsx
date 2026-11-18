@@ -44,22 +44,28 @@ export default function TechnicianSidebar({
         }`}
       >
         {/* GasConnect Branding */}
-        <div className="technician-sidebar-header">
-          <img
-            src={logo}
-            alt="GasConnect Technician Portal"
-            className="technician-brand-logo"
-          />
+<div className="technician-sidebar-header">
+  <img
+    src={logo}
+    alt="GasConnect Technician Portal"
+    className="technician-brand-logo"
+    onClick={() => {
+      setActiveSection('overview');
+      setSidebarOpen(false);
+    }}
+    title="Go to Dashboard"
+    style={{ cursor: 'pointer' }}
+  />
 
-          <button
-            type="button"
-            className="technician-sidebar-close"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
-          >
-            <X size={20} />
-          </button>
-        </div>
+  <button
+    type="button"
+    className="technician-sidebar-close"
+    onClick={() => setSidebarOpen(false)}
+    aria-label="Close sidebar"
+  >
+    <X size={20} />
+  </button>
+</div>
 
         {/* Navigation heading */}
         <div className="technician-sidebar-label">

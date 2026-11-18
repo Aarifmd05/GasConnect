@@ -6,6 +6,7 @@ import {
     ChevronDown,
     CheckCheck
 } from 'lucide-react';
+import formatName from '../../../utils/formatname';
 
 export default function TechnicianTopbar({
     user,
@@ -18,7 +19,7 @@ export default function TechnicianTopbar({
 }) {
     const [showNotifications, setShowNotifications] = useState(false);
 
-    const name = user?.name || 'Technician';
+    const name = formatName(user?.name) || 'Technician';
     const recentNotifications = notifications.slice(0, 5);
 
     const formatDate = (date) => {
@@ -184,8 +185,6 @@ useEffect(() => {
                         <strong>{name}</strong>
                         <span>Technician</span>
                     </div>
-
-                    <ChevronDown size={16} />
                 </button>
             </div>
         </header>

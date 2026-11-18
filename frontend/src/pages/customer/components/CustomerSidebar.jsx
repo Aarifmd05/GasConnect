@@ -40,19 +40,18 @@ const CustomerSidebar = ({
     <aside className={`customer-sidebar ${sidebarOpen ? '' : 'closed'}`}>
 
       {/* GasConnect Branding */}
-      <div className="customer-sidebar-brand">
-        {sidebarOpen && (
-          <img
-            src={logo}
-            alt="GasConnect Customer Portal"
-            className="customer-brand-logo"
-          />
-        )}
-      </div>
-
-      <div className="sidebar-menu-heading">
-        {sidebarOpen && 'CUSTOMER MENU'}
-      </div>
+<div className="customer-sidebar-brand">
+  {sidebarOpen && (
+    <img
+      src={logo}
+      alt="GasConnect Customer Portal"
+      className="customer-brand-logo"
+      onClick={() => onSectionChange('overview')}
+      title="Go to Dashboard"
+      style={{ cursor: 'pointer' }}
+    />
+  )}
+</div>
 
       {/* Navigation */}
       <nav className="customer-sidebar-nav">

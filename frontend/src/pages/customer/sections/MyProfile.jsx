@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 import './MyProfile.css';
+import formatName from '../../../utils/formatname';
 
 const API_URL = 'http://localhost:3006/api';
 
@@ -211,7 +212,7 @@ export default function MyProfile() {
               CUSTOMER PROFILE
             </span>
 
-            <h3>{form.name || 'Customer'}</h3>
+            <h3>{formatName(form.name) || 'Customer'}</h3>
 
             <p>
               <Mail size={15} />

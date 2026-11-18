@@ -73,3 +73,11 @@
     cursor: pointer;
   }
 }
+.technician-brand-logo {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.technician-brand-logo:hover {
+  transform: scale(1.02);
+}

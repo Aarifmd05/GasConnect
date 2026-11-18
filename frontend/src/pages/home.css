@@ -667,9 +667,11 @@
 
 .gc-home .gc-home-carousel-image {
     width: 100%;
+    max-width: none;
     height: 100%;
     display: block;
     object-fit: cover;
+    object-position: center;
     animation: gc-home-image-fade 0.5s ease;
 }
 

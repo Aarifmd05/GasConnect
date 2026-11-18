@@ -1,0 +1,43 @@
+.gc-back-home {
+    position: fixed;
+    top: 20px;
+    left: 25px;
+    z-index: 9999;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 11px 20px;
+
+    background: #FFFFFF;
+    color: #0754A0;
+
+    border: 1px solid #0754A0;
+    border-radius: 30px;
+
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+
+    box-shadow: 0 3px 12px rgba(7, 84, 160, 0.12);
+
+    transition: all 0.3s ease;
+}
+
+.gc-back-home:hover {
+    background: linear-gradient(180deg, #FFD600, #FF9900);
+    color: #003B7A;
+    border-color: #FF9900;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+    .gc-back-home {
+        top: 12px;
+        left: 12px;
+        padding: 9px 13px;
+        font-size: 12px;
+        gap: 6px;
+    }
+}

@@ -196,3 +196,11 @@ background: #0B1930;
 background: #0B1930;
 }
 }
+.admin-sidebar-logo img {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.admin-sidebar-logo img:hover {
+    transform: scale(1.02);
+}

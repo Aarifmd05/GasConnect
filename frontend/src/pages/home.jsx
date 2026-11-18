@@ -12,7 +12,8 @@ import {
     HardHat,
     ChevronLeft,
     ChevronRight,
-    Mail
+    Mail,
+    ShoppingBag
 } from "lucide-react";
 
 import gasconnectLogo from "../assets/logo.png";
@@ -274,12 +275,12 @@ function Home() {
 
                     <article className="gc-home-service-card">
                         <div className="gc-home-icon">
-                            <Wrench size={34} />
+                            <ShoppingBag size={34} />
                         </div>
-                        <h3>Gas Repair Services</h3>
+                        <h3>Gas Repair products</h3>
                         <p>
-                            Request repair services and connect
-                            with available technicians.
+                            Professional gas repair products and accessories for safe, 
+                            reliable and efficient gas system maintenance.
                         </p>
                     </article>
                 </div>

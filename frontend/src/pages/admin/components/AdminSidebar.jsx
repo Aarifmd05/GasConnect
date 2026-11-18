@@ -50,17 +50,30 @@ export default function AdminSidebar({
                 className={`admin-sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}
                 aria-label="Admin navigation"
             >
-                <div className="admin-sidebar-logo">
-                    <img src={logo} alt="GasConnect Logo" />
-                    <button
-                        type="button"
-                        className="admin-sidebar-close"
-                        onClick={onClose}
-                        aria-label="Close sidebar"
-                    >
-                        <X size={22} />
-                    </button>
-                </div>
+                {/* GasConnect Branding */}
+<div className="admin-sidebar-logo">
+
+    <img
+        src={logo}
+        alt="GasConnect Logo"
+        onClick={() => {
+            onMenuClick('Dashboard');
+            onClose?.();
+        }}
+        title="Go to Admin Dashboard"
+        style={{ cursor: 'pointer' }}
+    />
+
+    <button
+        type="button"
+        className="admin-sidebar-close"
+        onClick={onClose}
+        aria-label="Close sidebar"
+    >
+        <X size={22} />
+    </button>
+
+</div>
 
                 <div className="admin-sidebar-heading">ADMIN MENU</div>
 

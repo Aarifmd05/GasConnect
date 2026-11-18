@@ -141,7 +141,6 @@ function AdminLogin() {
             cancelled = true;
         };
     }, []);
-
     return (
         <AuthLayout logo={logo} illustration={adminIllustration}>
             <div className="admin-login-heading">

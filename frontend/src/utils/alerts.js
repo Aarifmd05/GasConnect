@@ -6,7 +6,7 @@ export const showSuccess = (message, title = 'Success!') => {
     title,
     text: message,
     icon: 'success',
-    confirmButtonColor: '#0754A0'
+    confirmButtonColor: '#3eba00'
   });
 };
 
@@ -15,7 +15,7 @@ export const showError = (message, title = 'Error!') => {
     title,
     text: message,
     icon: 'error',
-    confirmButtonColor: '#0754A0'
+    confirmButtonColor: '#e81e0c'
   });
 };
 

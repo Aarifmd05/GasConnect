@@ -17,6 +17,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import './TechnicianProfile.css';
+import formatName from '../../../utils/formatname';
 const API_URL = 'http://localhost:3006/api';
 
 const defaultNotifications = {
@@ -293,7 +294,7 @@ useEffect(() => {
           </div>
 
           <div className="technician-profile-identity">
-            <h3>{user.name || 'Technician Name'}</h3>
+            <h3>{formatName(user.name) || 'Technician Name'}</h3>
             <span className="technician-role-badge">
               {user.role || 'Technician'}
             </span>
@@ -337,39 +338,11 @@ useEffect(() => {
         placeholder="Enter full name"
       />
     ) : (
-      <strong>{user.name || 'Not available'}</strong>
+      <strong>{formatName(user.name) || 'Not available'}</strong>
     )}
   </div>
 
-  {/* First Name */}
-  <div className="technician-info-item">
-    <span><User size={14} /> First Name</span>
-    {editMode ? (
-      <input
-        name="firstName"
-        value={formData.firstName}
-        onChange={handleInputChange}
-        placeholder="Enter first name"
-      />
-    ) : (
-      <strong>{user.firstName || 'Not available'}</strong>
-    )}
-  </div>
-
-  {/* Last Name */}
-  <div className="technician-info-item">
-    <span><User size={14} /> Last Name</span>
-    {editMode ? (
-      <input
-        name="lastName"
-        value={formData.lastName}
-        onChange={handleInputChange}
-        placeholder="Enter last name"
-      />
-    ) : (
-      <strong>{user.lastName || 'Not available'}</strong>
-    )}
-  </div>
+  
 
   {/* Registered Email - Locked */}
   <div className="technician-info-item">

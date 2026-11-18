@@ -278,3 +278,11 @@
     }
 
 }
+.customer-brand-logo {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.customer-brand-logo:hover {
+  transform: scale(1.02);
+}

@@ -11,6 +11,7 @@ import {
 
 import LocationSelector from './LocationSelector';
 import './CustomerTopbar.css';
+import formatName from '../../../utils/formatname';
 
 const CustomerTopbar = ({
   user,
@@ -22,14 +23,16 @@ const CustomerTopbar = ({
   readNotifications = [],
   unreadCount = 0,
   markAsRead,
-  onOpenNotifications
+  onOpenNotifications,
+  onOpenProfile
+  
 }) => {
   const [showLocations, setShowLocations] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
 
-  const displayName = user?.name || 'Customer';
+  const displayName = formatName(user?.name) || 'Customer';
 
   const recentNotifications = notifications.slice(0, 5);
 
@@ -232,12 +235,13 @@ useEffect(() => {
 
         </div>
 
-        {/* Profile */}
+                {/* Profile */}
         <div className="topbar-profile-wrapper">
 
           <button
+            type="button"
             className="topbar-profile"
-            onClick={() => setShowProfile(!showProfile)}
+            onClick={() => onOpenProfile?.()}
           >
             <div className="topbar-avatar">
               <UserRound size={20} />
@@ -248,17 +252,8 @@ useEffect(() => {
               <span>Customer</span>
             </div>
 
-            <ChevronDown size={16} />
+            
           </button>
-
-          {showProfile && (
-            <div className="topbar-profile-dropdown">
-              <button onClick={onLogout}>
-                <LogOut size={17} />
-                Logout
-              </button>
-            </div>
-          )}
 
         </div>
 
@@ -267,8 +262,5 @@ useEffect(() => {
     </header>
   );
 };
-
-// Helper to determine whether a notification is unread
-
 
 export default CustomerTopbar;

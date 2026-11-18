@@ -310,10 +310,7 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
         </div>
       )}
 
-      <form
-        className="repair-booking-form"
-        onSubmit={handleSubmit}
-      >
+      <div className="repair-booking-form">
 
         <div className="booking-form-heading">
           <h3>Service Details</h3>
@@ -645,18 +642,19 @@ const BookRepair = ({ selectedAddress, onAddressSelect }) => {
             Please verify your service details before submitting.
           </p>
 
-          <button
-            type="submit"
-            className="submit-repair-booking"
-            disabled={submitting || loadingRepairs}
-          >
+         <button
+    type="button"
+    className="submit-repair-booking"
+    onClick={handleSubmit}
+    disabled={submitting || loadingRepairs}
+>
             {submitting
               ? 'Submitting...'
               : 'Confirm Repair Booking'}
           </button>
         </div>
 
-      </form>
+      </div>
     </div>
   );
 };
