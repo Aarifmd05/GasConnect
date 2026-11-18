@@ -11,9 +11,9 @@ import {
   CheckCircle,
   PlayCircle,
   Navigation,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ShieldCheck
 } from 'lucide-react';
-
 
 import './AssignedJobs.css';
 import { showConfirm } from '../../../utils/alerts';
@@ -27,6 +27,7 @@ export default function AssignedJobs() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('all');
+  const [otpInputs, setOtpInputs] = useState({});
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -60,23 +61,14 @@ export default function AssignedJobs() {
     fetchJobs();
   }, [fetchJobs]);
 
-  // Update job status
+  // Start repair: accepted -> in-progress
   const updateJobStatus = async (jobId, status) => {
-    const action = status === 'in-progress'
-      ? 'start this repair'
-      : 'mark this repair as completed';
-
-    // Show SweetAlert2 confirmation popup
     const result = await showConfirm(
-      `Are you sure you want to ${action}?`,
-      status === 'in-progress'
-        ? 'Start Repair?'
-        : 'Complete Job?'
+      'Are you sure you want to start this repair?',
+      'Start Repair?'
     );
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!result.isConfirmed) return;
 
     try {
       setProcessingId(jobId);
@@ -98,7 +90,7 @@ export default function AssignedJobs() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Unable to update job status.');
+        throw new Error(data.message || 'Unable to start repair.');
       }
 
       setJobs(currentJobs =>
@@ -109,14 +101,83 @@ export default function AssignedJobs() {
         )
       );
 
-      setMessage(
-        status === 'in-progress'
-          ? 'Repair started successfully.'
-          : 'Repair completed successfully.'
-      );
+      setMessage('Repair started successfully.');
     } catch (err) {
       setError(err.message || 'Unable to update job.');
       fetchJobs();
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // Keep only four numeric digits in the OTP input
+  const handleOtpChange = (jobId, value) => {
+    const cleanedOtp = value.replace(/\D/g, '').slice(0, 4);
+
+    setOtpInputs(current => ({
+      ...current,
+      [jobId]: cleanedOtp
+    }));
+  };
+
+  // Verify customer's OTP and complete the repair
+  const verifyCompletionOtp = async jobId => {
+    const otp = otpInputs[jobId] || '';
+
+    if (!/^\d{4}$/.test(otp)) {
+      setError('Please enter a valid 4-digit customer OTP.');
+      return;
+    }
+
+    const result = await showConfirm(
+      'Confirm that the repair is complete and the customer has shared this OTP.',
+      'Verify Job Completion?'
+    );
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setProcessingId(jobId);
+      setError('');
+      setMessage('');
+
+      const response = await fetch(
+        `${API_URL}/bookings/technician/verify-completion/${jobId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ otp })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'OTP verification failed.');
+      }
+
+      // Update the local booking status.
+      // The completed job will disappear from the active jobs list.
+      setJobs(currentJobs =>
+        currentJobs.map(job =>
+          job._id === jobId
+            ? { ...job, status: 'completed' }
+            : job
+        )
+      );
+
+      setOtpInputs(current => {
+        const updated = { ...current };
+        delete updated[jobId];
+        return updated;
+      });
+
+      setMessage('OTP verified successfully. Repair completed!');
+    } catch (err) {
+      setError(err.message || 'Unable to verify OTP.');
     } finally {
       setProcessingId(null);
     }
@@ -398,18 +459,56 @@ export default function AssignedJobs() {
                       {processingId === job._id ? 'Updating...' : 'Start Repair'}
                     </button>
                   )}
-
-                  {job.status === 'in-progress' && (
-                    <button
-                      className="assigned-complete-btn"
-                      onClick={() => updateJobStatus(job._id, 'completed')}
-                      disabled={processingId !== null}
-                    >
-                      <CheckCircle size={17} />
-                      {processingId === job._id ? 'Updating...' : 'Complete Job'}
-                    </button>
-                  )}
                 </div>
+
+                {job.status === 'in-progress' && (
+                  <div className="assigned-otp-section">
+                    <div className="assigned-otp-heading">
+                      <ShieldCheck size={22} />
+                      <div>
+                        <h4>Customer OTP Verification</h4>
+                        <p>
+                          Ask the customer for their 4-digit OTP after completing
+                          the repair.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="assigned-otp-input-row">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={4}
+                        placeholder="Enter 4-digit OTP"
+                        value={otpInputs[job._id] || ''}
+                        onChange={event =>
+                          handleOtpChange(job._id, event.target.value)
+                        }
+                        disabled={processingId === job._id}
+                      />
+
+                      <button
+                        className="assigned-verify-btn"
+                        onClick={() => verifyCompletionOtp(job._id)}
+                        disabled={
+                          processingId !== null ||
+                          (otpInputs[job._id] || '').length !== 4
+                        }
+                      >
+                        <CheckCircle size={17} />
+                        {processingId === job._id
+                          ? 'Verifying...'
+                          : 'Verify & Complete'}
+                      </button>
+                    </div>
+
+                    <p className="assigned-otp-hint">
+                      The job will be marked completed only after the backend
+                      verifies the customer's OTP.
+                    </p>
+                  </div>
+                )}
               </article>
             );
           })}

@@ -475,3 +475,107 @@
     width: 100%;
   }
 }
+
+/* Customer OTP verification */
+.assigned-otp-section {
+  margin: 18px 0 0;
+  padding: 18px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+}
+
+.assigned-otp-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #0754a0;
+}
+
+.assigned-otp-heading > svg {
+  flex-shrink: 0;
+}
+
+.assigned-otp-heading h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.assigned-otp-heading p {
+  margin: 0;
+  color: #64758b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.assigned-otp-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 17px;
+}
+
+.assigned-otp-input-row input {
+  width: 190px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  outline: none;
+  color: #17365d;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 5px;
+}
+
+.assigned-otp-input-row input:focus {
+  border-color: #0754a0;
+  box-shadow: 0 0 0 3px rgba(7, 84, 160, 0.1);
+}
+
+.assigned-verify-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #0754a0;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assigned-verify-btn:hover {
+  background: #06447f;
+}
+
+.assigned-verify-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.assigned-otp-hint {
+  margin: 12px 0 0;
+  color: #64758b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 550px) {
+  .assigned-otp-input-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assigned-otp-input-row input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .assigned-verify-btn {
+    width: 100%;
+  }
+}

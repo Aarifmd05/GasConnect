@@ -1,142 +1,147 @@
-// Business logic for this set of API routes.
+
+// Business logic for booking API routes.
 
 import mongoose from 'mongoose';
 import multer from 'multer';
+import { randomInt } from 'crypto';
+
 import User from '../models/User.js';
 import Booking from '../models/Booking.js';
 import RepairType from '../models/RepairType.js';
 
-// Shared helpers used by the route handlers.
 // ==========================================
 // POST - Customer creates a booking
 // ==========================================
 
-// Handles POST /.
 export const createBooking = async (req, res) => {
-        try {
-            if (req.user.role !== 'customer') {
-                return res.status(403).json({
-                    message: 'Only customers can create bookings'
-                });
-            }
-
-            const {
-                repairType,
-                bookingDate,
-                address,
-                description
-            } = req.body;
-
-            if (!repairType && !req.file) {
-                return res.status(400).json({
-                    message: 'Please select a repair service or upload a photo.'
-                });
-            }
-
-            if (!bookingDate || !address) {
-                return res.status(400).json({
-                    message: 'Booking date and address are required'
-                });
-            }
-
-            if (repairType) {
-                if (!mongoose.isValidObjectId(repairType)) {
-                    return res.status(400).json({
-                        message: 'Invalid repair type ID'
-                    });
-                }
-
-                const selectedRepair = await RepairType.findById(repairType);
-
-                if (!selectedRepair) {
-                    return res.status(404).json({
-                        message: 'Repair type not found'
-                    });
-                }
-            }
-
-            if (
-                typeof address !== 'string' ||
-                address.trim().length < 5 ||
-                address.trim().length > 300
-            ) {
-                return res.status(400).json({
-                    message: 'Address must contain 5 to 300 characters'
-                });
-            }
-
-            if (
-                description !== undefined &&
-                (
-                    typeof description !== 'string' ||
-                    description.length > 500
-                )
-            ) {
-                return res.status(400).json({
-                    message: 'Description cannot exceed 500 characters'
-                });
-            }
-
-            const selectedDate = new Date(bookingDate);
-
-            if (
-                isNaN(selectedDate.getTime()) ||
-                selectedDate <= new Date()
-            ) {
-                return res.status(400).json({
-                    message: 'Please provide a valid future booking date'
-                });
-            }
-
-            const photoUrl = req.file
-                ? `/uploads/bookings/${req.file.filename}`
-                : '';
-
-            const newBooking = new Booking({
-                customer: req.user.id,
-                repairType: repairType || null,
-                bookingDate: selectedDate,
-                address: address.trim(),
-                description: description?.trim() || '',
-                issuePhoto: {
-                    url: photoUrl,
-                    filename: req.file?.filename || ''
-                }
-            });
-
-            const savedBooking = await newBooking.save();
-
-            return res.status(201).json({
-                message: 'Repair booking created successfully',
-                booking: savedBooking
-            });
-
-        } catch (error) {
-            console.error('Create booking error:', error);
-
-            if (req.file) {
-                const fs = await import('fs/promises');
-                const path = await import('path');
-
-                await fs.unlink(
-                    path.join(
-                        process.cwd(),
-                        'uploads',
-                        'bookings',
-                        req.file.filename
-                    )
-                ).catch(() => {});
-            }
-
-            return res.status(
-                error instanceof multer.MulterError ? 400 : 500
-            ).json({
-                message: error.message || 'Failed to create booking'
+    try {
+        if (req.user.role !== 'customer') {
+            return res.status(403).json({
+                message: 'Only customers can create bookings'
             });
         }
-    };
 
-// Handles GET /my-bookings.
+        const {
+            repairType,
+            bookingDate,
+            address,
+            description
+        } = req.body;
+
+        if (!repairType && !req.file) {
+            return res.status(400).json({
+                message: 'Please select a repair service or upload a photo.'
+            });
+        }
+
+        if (!bookingDate || !address) {
+            return res.status(400).json({
+                message: 'Booking date and address are required'
+            });
+        }
+
+        if (repairType) {
+            if (!mongoose.isValidObjectId(repairType)) {
+                return res.status(400).json({
+                    message: 'Invalid repair type ID'
+                });
+            }
+
+            const selectedRepair = await RepairType.findById(repairType);
+
+            if (!selectedRepair) {
+                return res.status(404).json({
+                    message: 'Repair type not found'
+                });
+            }
+        }
+
+        if (
+            typeof address !== 'string' ||
+            address.trim().length < 5 ||
+            address.trim().length > 300
+        ) {
+            return res.status(400).json({
+                message: 'Address must contain 5 to 300 characters'
+            });
+        }
+
+        if (
+            description !== undefined &&
+            (
+                typeof description !== 'string' ||
+                description.length > 500
+            )
+        ) {
+            return res.status(400).json({
+                message: 'Description cannot exceed 500 characters'
+            });
+        }
+
+        const selectedDate = new Date(bookingDate);
+
+        if (
+            isNaN(selectedDate.getTime()) ||
+            selectedDate <= new Date()
+        ) {
+            return res.status(400).json({
+                message: 'Please provide a valid future booking date'
+            });
+        }
+
+        const photoUrl = req.file
+            ? `/uploads/bookings/${req.file.filename}`
+            : '';
+
+        const newBooking = new Booking({
+            customer: req.user.id,
+            repairType: repairType || null,
+            bookingDate: selectedDate,
+            address: address.trim(),
+            description: description?.trim() || '',
+            issuePhoto: {
+                url: photoUrl,
+                filename: req.file?.filename || ''
+            }
+        });
+
+        const savedBooking = await newBooking.save();
+
+        return res.status(201).json({
+            message: 'Repair booking created successfully',
+            booking: savedBooking
+        });
+
+    } catch (error) {
+        console.error('Create booking error:', error);
+
+        if (req.file) {
+            const fs = await import('fs/promises');
+            const path = await import('path');
+
+            await fs.unlink(
+                path.join(
+                    process.cwd(),
+                    'uploads',
+                    'bookings',
+                    req.file.filename
+                )
+            ).catch(() => {});
+        }
+
+        return res.status(
+            error instanceof multer.MulterError ? 400 : 500
+        ).json({
+            message: error.message || 'Failed to create booking'
+        });
+    }
+};
+
+
+// ==========================================
+// GET - Customer's bookings
+// ==========================================
+
 export const getMyBookings = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
@@ -148,6 +153,7 @@ export const getMyBookings = async (req, res) => {
         const bookings = await Booking.find({
             customer: req.user.id
         })
+            .select('+completionOtp')
             .populate('repairType', 'name price')
             .populate('technician', 'name phone specialization')
             .sort({ createdAt: -1 });
@@ -166,7 +172,11 @@ export const getMyBookings = async (req, res) => {
     }
 };
 
-// Handles GET /admin/all.
+
+// ==========================================
+// GET - Admin views all bookings
+// ==========================================
+
 export const getAllBookingsForAdmin = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -196,7 +206,11 @@ export const getAllBookingsForAdmin = async (req, res) => {
     }
 };
 
-// Handles PUT /admin/assign/:id.
+
+// ==========================================
+// PUT - Admin assigns booking to technician
+// ==========================================
+
 export const assignBookingToTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -234,24 +248,25 @@ export const assignBookingToTechnician = async (req, res) => {
             }
         }
 
-        // If technicianId exists: direct assignment.
-        // Otherwise: publish to all approved technicians.
-        const update = {
-            technician: technicianId || null,
-            status: 'assigned',
-            declinedBy: []
-        };
-
+        // Direct assignment or publish to all approved technicians.
         const booking = await Booking.findOneAndUpdate(
             {
                 _id: req.params.id,
                 status: { $in: ['pending', 'rejected'] }
             },
             {
-                $set: update
+                $set: {
+                    technician: technicianId || null,
+                    status: 'assigned',
+                    declinedBy: [],
+                    completionOtpVerified: false
+                },
+                $unset: {
+                    completionOtp: 1
+                }
             },
             {
-                 returnDocument: 'after',
+                returnDocument: 'after',
                 runValidators: true
             }
         )
@@ -281,7 +296,11 @@ export const assignBookingToTechnician = async (req, res) => {
     }
 };
 
-// Handles PUT /technician/respond/:id.
+
+// ==========================================
+// PUT - Technician accepts or rejects booking
+// ==========================================
+
 export const respondToBookingAsTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
@@ -309,10 +328,10 @@ export const respondToBookingAsTechnician = async (req, res) => {
         // ----------------------------------
         // REJECT BOOKING
         // ----------------------------------
+
         if (response === 'rejected') {
 
-            // Case 1: Technician rejects a job directly assigned to them.
-            // Release it back to the shared pool.
+            // Case 1: Directly assigned booking.
             let rejectedBooking = await Booking.findOneAndUpdate(
                 {
                     _id: bookingId,
@@ -321,19 +340,22 @@ export const respondToBookingAsTechnician = async (req, res) => {
                 },
                 {
                     $set: {
-                        technician: null
+                        technician: null,
+                        completionOtpVerified: false
+                    },
+                    $unset: {
+                        completionOtp: 1
                     },
                     $addToSet: {
                         declinedBy: technicianId
                     }
                 },
                 {
-                     returnDocument: 'after'
+                    returnDocument: 'after'
                 }
             );
 
-            // Case 2: Technician rejects a shared-pool job.
-            // Hide it only from this technician.
+            // Case 2: Shared-pool booking.
             if (!rejectedBooking) {
                 rejectedBooking = await Booking.findOneAndUpdate(
                     {
@@ -343,12 +365,18 @@ export const respondToBookingAsTechnician = async (req, res) => {
                         declinedBy: { $ne: technicianId }
                     },
                     {
+                        $set: {
+                            completionOtpVerified: false
+                        },
+                        $unset: {
+                            completionOtp: 1
+                        },
                         $addToSet: {
                             declinedBy: technicianId
                         }
                     },
                     {
-                         returnDocument: 'after'
+                        returnDocument: 'after'
                     }
                 );
             }
@@ -370,7 +398,13 @@ export const respondToBookingAsTechnician = async (req, res) => {
         // ACCEPT BOOKING
         // ----------------------------------
 
-        // Case 1: Try accepting a shared-pool job.
+        // Generate a random 4-digit OTP.
+        // Stored as a string to preserve leading zeros.
+        const completionOtp = randomInt(0, 10000)
+            .toString()
+            .padStart(4, '0');
+
+        // Case 1: Accept shared-pool job.
         // Atomic operation ensures only one technician wins.
         let acceptedBooking = await Booking.findOneAndUpdate(
             {
@@ -382,17 +416,18 @@ export const respondToBookingAsTechnician = async (req, res) => {
             {
                 $set: {
                     technician: technicianId,
-                    status: 'accepted'
+                    status: 'accepted',
+                    completionOtp,
+                    completionOtpVerified: false
                 }
             },
             {
-                 returnDocument: 'after',
+                returnDocument: 'after',
                 runValidators: true
             }
         );
 
-        // Case 2: Try accepting a job directly assigned
-        // to this technician.
+        // Case 2: Accept directly assigned job.
         if (!acceptedBooking) {
             acceptedBooking = await Booking.findOneAndUpdate(
                 {
@@ -402,11 +437,13 @@ export const respondToBookingAsTechnician = async (req, res) => {
                 },
                 {
                     $set: {
-                        status: 'accepted'
+                        status: 'accepted',
+                        completionOtp,
+                        completionOtpVerified: false
                     }
                 },
                 {
-                     returnDocument: 'after',
+                    returnDocument: 'after',
                     runValidators: true
                 }
             );
@@ -442,6 +479,8 @@ export const respondToBookingAsTechnician = async (req, res) => {
         await acceptedBooking.populate('repairType', 'name description price');
         await acceptedBooking.populate('technician', 'name phone specialization');
 
+        // completionOtp is select:false, so it is not returned
+        // to the technician in this response.
         return res.status(200).json({
             message: 'Congratulations! You accepted this job.',
             booking: acceptedBooking
@@ -456,7 +495,11 @@ export const respondToBookingAsTechnician = async (req, res) => {
     }
 };
 
-// Handles GET /technician/my-bookings.
+
+// ==========================================
+// GET - Technician's bookings
+// ==========================================
+
 export const getTechnicianBookings = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
@@ -479,14 +522,14 @@ export const getTechnicianBookings = async (req, res) => {
 
         const bookings = await Booking.find({
             $or: [
-                // Shared jobs not yet accepted or rejected by this technician.
+                // Shared jobs not yet accepted or rejected.
                 {
                     technician: null,
                     status: 'assigned',
                     declinedBy: { $ne: req.user.id }
                 },
 
-                // Directly assigned jobs and jobs accepted by this technician.
+                // Directly assigned jobs and accepted jobs.
                 {
                     technician: req.user.id
                 }
@@ -511,7 +554,11 @@ export const getTechnicianBookings = async (req, res) => {
     }
 };
 
-// Handles PUT /technician/update-status/:id.
+
+// ==========================================
+// PUT - Technician starts repair
+// ==========================================
+
 export const updateBookingStatusAsTechnician = async (req, res) => {
     try {
         if (req.user.role !== 'technician') {
@@ -528,26 +575,27 @@ export const updateBookingStatusAsTechnician = async (req, res) => {
 
         const { status } = req.body;
 
-        if (!['in-progress', 'completed'].includes(status)) {
+        // Completion is no longer allowed through this endpoint.
+        // It must use the OTP verification endpoint.
+        if (status !== 'in-progress') {
             return res.status(400).json({
-                message: 'Status must be in-progress or completed'
+                message: 'Only starting a repair is allowed here. Use OTP verification to complete a job.'
             });
         }
-
-        const allowedCurrentStatus =
-            status === 'in-progress' ? 'accepted' : 'in-progress';
 
         const booking = await Booking.findOneAndUpdate(
             {
                 _id: req.params.id,
                 technician: req.user.id,
-                status: allowedCurrentStatus
+                status: 'accepted'
             },
             {
-                $set: { status }
+                $set: {
+                    status: 'in-progress'
+                }
             },
             {
-                 returnDocument: 'after',
+                returnDocument: 'after',
                 runValidators: true
             }
         );
@@ -559,7 +607,7 @@ export const updateBookingStatusAsTechnician = async (req, res) => {
         }
 
         return res.status(200).json({
-            message: 'Repair status updated successfully',
+            message: 'Repair started successfully',
             booking
         });
 
@@ -572,7 +620,81 @@ export const updateBookingStatusAsTechnician = async (req, res) => {
     }
 };
 
-// Handles PUT /customer/cancel/:id.
+
+// ==========================================
+// PUT - Technician verifies completion OTP
+// ==========================================
+
+export const verifyBookingCompletion = async (req, res) => {
+    try {
+        if (req.user.role !== 'technician') {
+            return res.status(403).json({
+                message: 'Only technicians can verify job completion'
+            });
+        }
+
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                message: 'Invalid booking ID'
+            });
+        }
+
+        const { otp } = req.body;
+
+        if (!/^\d{4}$/.test(String(otp || ''))) {
+            return res.status(400).json({
+                message: 'Please enter a valid 4-digit OTP'
+            });
+        }
+
+        // Only the assigned technician can complete an in-progress job.
+        const completedBooking = await Booking.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                technician: req.user.id,
+                status: 'in-progress',
+                completionOtp: String(otp)
+            },
+            {
+                $set: {
+                    status: 'completed',
+                    completionOtpVerified: true
+                },
+                $unset: {
+                    completionOtp: 1
+                }
+            },
+            {
+                returnDocument: 'after',
+                runValidators: true
+            }
+        );
+
+        if (!completedBooking) {
+            return res.status(400).json({
+                message: 'Incorrect OTP or booking is not eligible for completion'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'OTP verified successfully. Job marked as completed.',
+            booking: completedBooking
+        });
+
+    } catch (error) {
+        console.error('OTP verification error:', error);
+
+        return res.status(500).json({
+            message: 'Failed to verify job completion'
+        });
+    }
+};
+
+
+// ==========================================
+// PUT - Customer cancels booking
+// ==========================================
+
 export const cancelBookingAsCustomer = async (req, res) => {
     try {
         if (req.user.role !== 'customer') {
@@ -595,11 +717,15 @@ export const cancelBookingAsCustomer = async (req, res) => {
             },
             {
                 $set: {
-                    status: 'cancelled'
+                    status: 'cancelled',
+                    completionOtpVerified: false
+                },
+                $unset: {
+                    completionOtp: 1
                 }
             },
             {
-                 returnDocument: 'after',
+                returnDocument: 'after',
                 runValidators: true
             }
         );

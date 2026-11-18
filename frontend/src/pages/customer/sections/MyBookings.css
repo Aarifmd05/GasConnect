@@ -306,3 +306,97 @@
     font-size: 11px;
   }
 }
+/* Booking Completion OTP */
+.booking-completion-otp {
+  margin-top: 20px;
+  padding: 18px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+}
+
+.booking-otp-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #0754a0;
+}
+
+.booking-otp-heading h4 {
+  margin: 0 0 5px;
+  font-size: 15px;
+}
+
+.booking-otp-heading p {
+  margin: 0;
+  color: #64758b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.booking-otp-code-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.booking-otp-code {
+  padding: 10px 20px;
+  background: #ffffff;
+  border: 1px dashed #0754a0;
+  border-radius: 8px;
+  color: #0754a0;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: 9px;
+}
+
+.booking-otp-copy {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  background: #0754a0;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.booking-otp-copy:hover {
+  background: #06447f;
+}
+
+.booking-otp-warning {
+  margin: 13px 0 0;
+  color: #92400e;
+  font-size: 12px;
+}
+
+.booking-completed-message {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 17px;
+  padding: 13px;
+  background: #e2f7ec;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  color: #15965b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .booking-otp-code-row {
+    flex-wrap: wrap;
+  }
+
+  .booking-otp-code {
+    font-size: 24px;
+    letter-spacing: 8px;
+  }
+}

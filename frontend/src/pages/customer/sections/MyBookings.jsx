@@ -9,13 +9,17 @@ import {
   Phone,
   RefreshCw,
   XCircle,
-  Wrench
+  Wrench,
+  ShieldCheck,
+  Copy
 } from 'lucide-react';
 
-
-
 import './MyBookings.css';
-import { showConfirm, showError, showSuccess } from '../../../utils/alerts';
+import {
+  showConfirm,
+  showError,
+  showSuccess
+} from '../../../utils/alerts';
 
 const API_URL = 'http://localhost:3006/api';
 
@@ -44,6 +48,7 @@ const MyBookings = () => {
 
       const data = response.data.bookings || response.data;
       setBookings(Array.isArray(data) ? data : []);
+
     } catch (err) {
       console.error('Error fetching bookings:', err);
 
@@ -53,6 +58,7 @@ const MyBookings = () => {
 
       setError(errorMessage);
       showError(errorMessage);
+
     } finally {
       setLoading(false);
     }
@@ -91,6 +97,7 @@ const MyBookings = () => {
       await showSuccess(
         response.data.message || 'Repair booking cancelled successfully.'
       );
+
     } catch (err) {
       console.error('Booking cancellation failed:', err);
 
@@ -100,8 +107,18 @@ const MyBookings = () => {
 
       setError(errorMessage);
       showError(errorMessage);
+
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handleCopyOtp = async (otp) => {
+    try {
+      await navigator.clipboard.writeText(otp);
+      await showSuccess('Completion OTP copied successfully.');
+    } catch (error) {
+      showError('Unable to copy OTP. Please note it manually.');
     }
   };
 
@@ -147,6 +164,7 @@ const MyBookings = () => {
   return (
     <div className="my-bookings-page">
 
+      {/* Heading */}
       <div className="my-bookings-heading">
         <div>
           <h2>Your Repair Bookings</h2>
@@ -164,6 +182,7 @@ const MyBookings = () => {
         </button>
       </div>
 
+      {/* Filters */}
       <div className="booking-filter-tabs">
         {[
           { id: 'all', label: 'All Bookings' },
@@ -181,6 +200,7 @@ const MyBookings = () => {
         ))}
       </div>
 
+      {/* Error */}
       {error && (
         <div className="my-bookings-error">
           <XCircle size={18} />
@@ -188,6 +208,7 @@ const MyBookings = () => {
         </div>
       )}
 
+      {/* Loading */}
       {loading ? (
         <div className="my-bookings-empty">
           Loading your bookings...
@@ -206,9 +227,11 @@ const MyBookings = () => {
         </div>
       ) : (
         <div className="my-bookings-list">
+
           {filteredBookings.map((booking) => (
             <article className="my-booking-card" key={booking._id}>
 
+              {/* Booking Header */}
               <div className="my-booking-top">
                 <div className="my-booking-service">
                   <div className="my-booking-icon">
@@ -230,7 +253,9 @@ const MyBookings = () => {
                 </span>
               </div>
 
+              {/* Booking Information */}
               <div className="my-booking-info-grid">
+
                 <div className="my-booking-info">
                   <CalendarDays size={17} />
                   <div>
@@ -266,8 +291,58 @@ const MyBookings = () => {
                     </div>
                   </div>
                 )}
+
               </div>
 
+              {/* Completion OTP */}
+              {['accepted', 'in-progress'].includes(booking.status) &&
+                booking.completionOtp && (
+                  <div className="booking-completion-otp">
+
+                    <div className="booking-otp-heading">
+                      <ShieldCheck size={22} />
+                      <div>
+                        <h4>Job Completion OTP</h4>
+                        <p>
+                          Share this code with your technician only
+                          after the repair work is completed.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="booking-otp-code-row">
+                      <div className="booking-otp-code">
+                        {booking.completionOtp}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="booking-otp-copy"
+                        onClick={() => handleCopyOtp(booking.completionOtp)}
+                        title="Copy OTP"
+                      >
+                        <Copy size={17} />
+                        Copy
+                      </button>
+                    </div>
+
+                    <p className="booking-otp-warning">
+                      Do not share this OTP before the technician
+                      finishes the physical repair.
+                    </p>
+
+                  </div>
+                )}
+
+              {/* Completed Message */}
+              {booking.status === 'completed' && (
+                <div className="booking-completed-message">
+                  <ShieldCheck size={19} />
+                  <span>Repair completed and OTP verified successfully.</span>
+                </div>
+              )}
+
+              {/* Problem Description */}
               {booking.description && (
                 <div className="my-booking-description">
                   <strong>Problem description</strong>
@@ -275,6 +350,7 @@ const MyBookings = () => {
                 </div>
               )}
 
+              {/* Cancel Booking */}
               {canCancel(booking.status) && (
                 <div className="my-booking-actions">
                   <button
@@ -292,6 +368,7 @@ const MyBookings = () => {
 
             </article>
           ))}
+
         </div>
       )}
 

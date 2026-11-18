@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema({
@@ -79,10 +80,23 @@ const bookingSchema = new mongoose.Schema({
         ref: 'User',
         default: null
     },
+
+    // Four-digit OTP for physical job completion verification
+    completionOtp: {
+        type: String,
+        select: false
+    },
+
+    // True only after successful technician OTP verification
+    completionOtpVerified: {
+        type: Boolean,
+        default: false
+    },
+
     declinedBy: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-}],
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 
 }, {
     timestamps: true

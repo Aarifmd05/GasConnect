@@ -9,7 +9,8 @@ import {
     respondToBookingAsTechnician,
     getTechnicianBookings,
     updateBookingStatusAsTechnician,
-    cancelBookingAsCustomer
+    cancelBookingAsCustomer,
+    verifyBookingCompletion
 } from '../controllers/bookingController.js';
 
 const router = express.Router();
@@ -37,5 +38,9 @@ router.put('/technician/update-status/:id', authMiddleware, updateBookingStatusA
 
 // PUT /customer/cancel/:id
 router.put('/customer/cancel/:id', authMiddleware, cancelBookingAsCustomer);
-
+router.put(
+    '/technician/verify-completion/:id',
+    authMiddleware,
+    verifyBookingCompletion
+);
 export default router;
